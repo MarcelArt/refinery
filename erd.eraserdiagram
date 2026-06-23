@@ -11,16 +11,14 @@ workflows {
     id uint pk
     title string
     description string
-    user_id uin fk
+    schemas jsonb
+    user_id uint fk
 }
-
-schema_defs {
-    id uint pk
+schemas {
     key string
     type string
     description string
     example string
-    workflow_id uint fk
 }
 
 extraction_results {
@@ -31,5 +29,4 @@ extraction_results {
 }
 
 workflows.user_id > users.id
-schema_defs.workflow_id > workflows.id
 extraction_results.workflow_id > workflows.id
