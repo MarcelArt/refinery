@@ -1,0 +1,35 @@
+entity-relationship-diagram
+
+users [icon: user, color: blue] {
+  id uint pk
+  username string
+  email string
+  password string
+}
+
+workflows {
+    id uint pk
+    title string
+    description string
+    user_id uin fk
+}
+
+schema_defs {
+    id uint pk
+    key string
+    type string
+    description string
+    example string
+    workflow_id uint fk
+}
+
+extraction_results {
+    id uint pk
+    raw string
+    json jsonb
+    workflow_id uint fk
+}
+
+workflows.user_id > users.id
+schema_defs.workflow_id > workflows.id
+extraction_results.workflow_id > workflows.id
