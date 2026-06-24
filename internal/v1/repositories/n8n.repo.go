@@ -27,7 +27,7 @@ func NewN8NRepo() *N8NRepo {
 }
 
 func (r *N8NRepo) PostWebhookForm(path string, body io.Reader, contentType string) error {
-	url := fmt.Sprintf("%s/webhook-test/%s", r.baseURL, path)
+	url := fmt.Sprintf("%s/webhook/%s", r.baseURL, path)
 	log.Println("url :>> ", url)
 	// log.Println("body :>> ", body)
 	log.Println("contentType :>> ", contentType)
