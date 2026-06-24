@@ -63,8 +63,9 @@ func (h *WorkflowWebHandler) ShowWorkflows(c *gin.Context) {
 		return
 	}
 
-	// Fetch workflows owned by the current logged-in user
-	_, pages := h.workflowService.GetByUserID(c, userId)
+	// Fetch workflows owned by the current logged-in user.
+	// Pagination is carried by the browser URL query string parsed automatically from context.
+	pageInfo, pages := h.workflowService.GetByUserID(c, userId)
 
 	// Map backend model pages to frontend view models
 	workflowsVM := make([]viewmodels.WorkflowRowViewModel, 0, len(pages))
@@ -79,10 +80,32 @@ func (h *WorkflowWebHandler) ShowWorkflows(c *gin.Context) {
 		})
 	}
 
+	// Compute item bounds (e.g., "Showing 1 to 10 of 25")
+	start := pageInfo.Page*pageInfo.Size + 1
+	end := start + int64(len(workflowsVM)) - 1
+	if len(workflowsVM) == 0 {
+		start = 0
+		end = 0
+	}
+
+	paginationVM := viewmodels.PaginationViewModel{
+		Total:      pageInfo.Total,
+		Page:       pageInfo.Page,
+		Size:       pageInfo.Size,
+		TotalPages: pageInfo.TotalPages,
+		Last:       pageInfo.Last,
+		First:      pageInfo.First,
+		PrevPage:   pageInfo.Page - 1,
+		NextPage:   pageInfo.Page + 1,
+		Start:      start,
+		End:        end,
+	}
+
 	renderTemplate(c, http.StatusOK, "workflows.html", gin.H{
 		"Title":      "Workflows",
 		"User":       user,
 		"Workflows":  workflowsVM,
+		"Pagination": paginationVM,
 		"ActiveMenu": "workflows",
 	})
 }

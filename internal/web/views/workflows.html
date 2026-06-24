@@ -52,6 +52,33 @@
             {{ end }}
         </tbody>
     </table>
+
+    <!-- Pagination Footer -->
+    <div class="table-footer">
+        <div>
+            Showing <strong>{{ .Pagination.Start }}</strong> to <strong>{{ .Pagination.End }}</strong> of <strong>{{ .Pagination.Total }}</strong> workflows
+        </div>
+        <div class="pagination-controls">
+            <a href="/workflows?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+               hx-get="/workflows?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+               hx-target=".main-wrapper"
+               hx-select=".main-wrapper"
+               hx-swap="outerHTML"
+               hx-push-url="true"
+               class="pagination-btn {{ if .Pagination.First }}disabled{{ end }}">
+                Previous
+            </a>
+            <a href="/workflows?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+               hx-get="/workflows?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+               hx-target=".main-wrapper"
+               hx-select=".main-wrapper"
+               hx-swap="outerHTML"
+               hx-push-url="true"
+               class="pagination-btn {{ if .Pagination.Last }}disabled{{ end }}">
+                Next
+            </a>
+        </div>
+    </div>
 </div>
 {{ else }}
 <div class="placeholder-card">
