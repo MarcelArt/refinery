@@ -1,0 +1,136 @@
+{{ define "content" }}
+<header class="page-header">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h1 class="page-title" style="font-size: 20px;">Extraction Results</h1>
+        <p style="font-size: 13px; color: var(--text-secondary);">Workflow: <strong>{{ .WorkflowTitle }}</strong></p>
+    </div>
+    <a href="/workflows" class="btn" style="width: auto; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; padding: 6px 12px;"
+       hx-get="/workflows"
+       hx-target=".main-wrapper"
+       hx-select=".main-wrapper"
+       hx-swap="outerHTML"
+       hx-push-url="true">
+        Back to workflows
+    </a>
+</header>
+
+<div class="results-page-layout" x-data="{ selectedRunId: {{ if .SelectedResult }}{{ .SelectedResult.ID }}{{ else }}null{{ end }} }">
+    <!-- Left Inner Sidebar (Runs List) -->
+    <aside class="results-sidebar">
+        <div style="padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color);">
+            Extraction Runs
+        </div>
+        
+        {{ if .Results }}
+        <ul class="results-list" style="margin: 0; padding: 0; list-style: none;">
+            {{ $workflowId := .WorkflowID }}
+            {{ range .Results }}
+            <li class="result-item" :class="{ 'active': selectedRunId === {{ .ID }} }">
+                <a href="/workflows/{{ $workflowId }}/results/{{ .ID }}"
+                   hx-get="/workflows/{{ $workflowId }}/results/details/{{ .ID }}"
+                   hx-target="#result-details"
+                   hx-swap="innerHTML"
+                   hx-push-url="/workflows/{{ $workflowId }}/results/{{ .ID }}"
+                   @click="selectedRunId = {{ .ID }}">
+                    <span class="result-run-id">Run #{{ .ID }}</span>
+                    <span class="result-run-date">{{ .CreatedAt.Format "2006-01-02 15:04" }}</span>
+                </a>
+            </li>
+            {{ end }}
+        </ul>
+
+        <!-- Inner Sidebar Pagination Footer -->
+        <div class="table-footer" style="padding: 10px 12px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; align-items: stretch;">
+            <div style="font-size: 11px; text-align: center; color: var(--text-secondary);">
+                Run <strong>{{ .Pagination.Start }}</strong> - <strong>{{ .Pagination.End }}</strong> of <strong>{{ .Pagination.Total }}</strong>
+            </div>
+            <div class="pagination-controls" style="justify-content: center;">
+                <a href="/workflows/{{ $workflowId }}/results?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+                   hx-get="/workflows/{{ $workflowId }}/results?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+                   hx-target=".main-wrapper"
+                   hx-select=".main-wrapper"
+                   hx-swap="outerHTML"
+                   hx-push-url="true"
+                   class="pagination-btn {{ if .Pagination.First }}disabled{{ end }}"
+                   style="padding: 4px 8px; font-size: 10px; flex: 1; text-align: center;">
+                    Prev
+                </a>
+                <a href="/workflows/{{ $workflowId }}/results?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+                   hx-get="/workflows/{{ $workflowId }}/results?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+                   hx-target=".main-wrapper"
+                   hx-select=".main-wrapper"
+                   hx-swap="outerHTML"
+                   hx-push-url="true"
+                   class="pagination-btn {{ if .Pagination.Last }}disabled{{ end }}"
+                   style="padding: 4px 8px; font-size: 10px; flex: 1; text-align: center;">
+                    Next
+                </a>
+            </div>
+        </div>
+        {{ else }}
+        <div style="padding: 24px 16px; text-align: center; font-size: 12px; color: var(--text-muted); font-style: italic;">
+            No runs recorded
+        </div>
+        {{ end }}
+    </aside>
+
+    <!-- Right Container (Run Details Dynamic Table) -->
+    <div id="result-details" class="result-details-container">
+        {{ if .SelectedResult }}
+            {{ template "result_details" .SelectedResult }}
+        {{ else }}
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 20px; font-style: italic; font-size: 13px;">
+                No extraction results found for this workflow.
+            </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}
+
+{{ define "result_details" }}
+<div class="result-details-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">
+            Run Details - Run #{{ .ID }}
+        </h2>
+        <span style="font-size: 11px; color: var(--text-secondary);">
+            Executed at: <strong>{{ .CreatedAt.Format "2006-01-02 15:04" }}</strong>
+        </span>
+    </div>
+
+    {{ if .Rows }}
+    <div class="table-container" style="box-shadow: none;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    {{ range .Columns }}
+                    <th title="{{ . }}">{{ . }}</th>
+                    {{ end }}
+                </tr>
+            </thead>
+            <tbody>
+                {{ $columns := .Columns }}
+                {{ range $row := .Rows }}
+                <tr>
+                    {{ range $col := $columns }}
+                    <td x-data="{ expanded: false }" 
+                        @click="expanded = !expanded" 
+                        class="clickable-cell"
+                        title="Click to toggle expand/collapse">
+                        <div :class="expanded ? 'cell-expanded' : 'cell-truncated'">
+                            {{ index $row $col }}
+                        </div>
+                    </td>
+                    {{ end }}
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+    {{ else }}
+    <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic;">
+        No data extracted in this run.
+    </div>
+    {{ end }}
+</div>
+{{ end }}

@@ -37,6 +37,7 @@ func New() *dig.Container {
 	c.Provide(webroutes.NewWebAuthMiddleware)
 	c.Provide(webhandlers.NewAuthWebHandler)
 	c.Provide(webhandlers.NewWorkflowWebHandler)
+	c.Provide(webhandlers.NewExtractionResultWebHandler)
 
 	c.Provide(app.New)
 

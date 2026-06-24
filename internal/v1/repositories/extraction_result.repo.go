@@ -14,6 +14,7 @@ import (
 
 type IExtractionResultRepo interface {
 	common.IBaseCrudRepo[entities.ExtractionResult, models.ExtractionResultInput, models.ExtractionResultPage]
+	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
 }
 
 type ExtractionResultRepo struct {
@@ -81,4 +82,23 @@ func (r *ExtractionResultRepo) GetByID(c context.Context, id any) (entities.Extr
 	extractionResult, err := gorm.G[entities.ExtractionResult](r.db).Where("id = ?", id).First(c)
 
 	return extractionResult, err
+}
+
+func (r *ExtractionResultRepo) GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage) {
+	extractionResults := make([]models.ExtractionResultPage, 0)
+	query := `
+		SELECT 
+			*
+		FROM extraction_results er
+		where er.deleted_at isnull
+		and er.workflow_id = ?
+	`
+
+	stmt := r.db.Raw(query, workflowID)
+
+	pg := paginate.New()
+
+	page := pg.With(stmt).Request(c.Request).Response(&extractionResults)
+
+	return page, extractionResults
 }

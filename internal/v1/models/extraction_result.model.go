@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/pkg/jsonb"
@@ -15,6 +17,7 @@ type ExtractionResultInput struct {
 
 type ExtractionResultPage struct {
 	ID         uint                                 `json:"ID"`
+	CreatedAt  time.Time                            `json:"CreatedAt"`
 	Raw        string                               `json:"raw"`
 	Json       jsonb.JSONB[entities.ExtractionJSON] `json:"json"`
 	WorkflowID uint                                 `json:"workflow_id"`

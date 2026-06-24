@@ -21,6 +21,7 @@
                 <th>Workflow Info</th>
                 <th>Extraction Prompt</th>
                 <th>Target Schema Fields</th>
+                <th style="width: 120px;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -47,6 +48,18 @@
                         <span class="schema-empty">No fields defined</span>
                         {{ end }}
                     </div>
+                </td>
+                <td>
+                    <a href="/workflows/{{ .ID }}/results"
+                       hx-get="/workflows/{{ .ID }}/results"
+                       hx-target=".main-wrapper"
+                       hx-select=".main-wrapper"
+                       hx-swap="outerHTML"
+                       hx-push-url="true"
+                       class="pagination-btn"
+                       style="display: inline-flex; width: auto; font-size: 10px; padding: 4px 8px; border-color: var(--accent); color: var(--accent); background-color: transparent;">
+                        View Results
+                    </a>
                 </td>
             </tr>
             {{ end }}

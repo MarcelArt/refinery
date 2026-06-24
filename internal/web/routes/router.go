@@ -10,6 +10,7 @@ func SetupWebRoutes(
 	authM *WebAuthMiddleware,
 	authH *handlers.AuthWebHandler,
 	wfH *handlers.WorkflowWebHandler,
+	erH *handlers.ExtractionResultWebHandler,
 ) {
 	// Serve static assets
 	r.Static("/public", "internal/web/public")
@@ -17,4 +18,5 @@ func SetupWebRoutes(
 	// Initialize modular routes
 	setupAuthRoutes(r, authM, authH)
 	setupWorkflowRoutes(r, authM, wfH)
+	setupExtractionResultRoutes(r, authM, erH)
 }

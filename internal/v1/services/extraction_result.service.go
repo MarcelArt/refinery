@@ -17,6 +17,7 @@ import (
 type IExtractionResultService interface {
 	common.IBaseCrudService[entities.ExtractionResult, models.ExtractionResultInput, models.ExtractionResultPage]
 	SaveFromLLM(c context.Context, id uint, input models.ContentLLM) (uint, error)
+	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
 }
 
 type ExtractionResultService struct {
@@ -68,4 +69,8 @@ func (s *ExtractionResultService) SaveFromLLM(c context.Context, id uint, input 
 		WorkflowID: id,
 	}
 	return s.repo.Create(c, result)
+}
+
+func (s *ExtractionResultService) GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage) {
+	return s.repo.GetByWorkflowID(c, workflowID)
 }
