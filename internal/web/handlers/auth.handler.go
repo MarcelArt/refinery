@@ -21,7 +21,8 @@ func NewAuthWebHandler(userService services.IUserService) *AuthWebHandler {
 // ShowLogin renders the login page
 func (h *AuthWebHandler) ShowLogin(c *gin.Context) {
 	renderTemplate(c, http.StatusOK, "login.html", gin.H{
-		"Title": "Sign In",
+		"Title":      "Sign In",
+		"HideLayout": true,
 	})
 }
 
@@ -63,7 +64,8 @@ func (h *AuthWebHandler) HandleLogin(c *gin.Context) {
 // ShowRegister renders the registration page
 func (h *AuthWebHandler) ShowRegister(c *gin.Context) {
 	renderTemplate(c, http.StatusOK, "register.html", gin.H{
-		"Title": "Create Account",
+		"Title":      "Create Account",
+		"HideLayout": true,
 	})
 }
 

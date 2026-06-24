@@ -65,14 +65,14 @@ func (m *WebAuthMiddleware) RequireAuth() gin.HandlerFunc {
 	}
 }
 
-// RedirectIfAuthenticated redirects the user to /workflows if they are already logged in
+// RedirectIfAuthenticated redirects the user to /dashboard if they are already logged in
 func (m *WebAuthMiddleware) RedirectIfAuthenticated() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		at, err := c.Cookie("at")
 		if err == nil && at != "" {
 			_, err := common.ParseToken(at)
 			if err == nil {
-				c.Redirect(http.StatusSeeOther, "/workflows")
+				c.Redirect(http.StatusSeeOther, "/dashboard")
 				c.Abort()
 				return
 			}
@@ -89,7 +89,7 @@ func (m *WebAuthMiddleware) RedirectIfAuthenticated() gin.HandlerFunc {
 				}
 				_, err := m.userService.RegenerateTokenPair(c, userId, isRemember)
 				if err == nil {
-					c.Redirect(http.StatusSeeOther, "/workflows")
+					c.Redirect(http.StatusSeeOther, "/dashboard")
 					c.Abort()
 					return
 				}
