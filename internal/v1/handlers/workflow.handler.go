@@ -36,12 +36,20 @@ func NewWorkflowHandler(service services.IWorkflowService, nService services.IN8
 // @Security     ApiKeyAuth
 // @Router       /v1/workflows [post]
 func (h *WorkflowHandler) Create(c *gin.Context) {
+	userID, err := common.MustGet[float64](c, "userId")
+	if err != nil {
+		_, res := common.ResultErr(err, "token invalid")
+		c.JSON(http.StatusUnauthorized, res)
+		return
+	}
+
 	var workflow models.WorkflowInput
 	if err := c.ShouldBindJSON(&workflow); err != nil {
 		_, res := common.ResultErr(err, "failed parsing json")
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
+	workflow.UserID = uint(userID)
 
 	id, err := h.service.Create(c, workflow)
 	if err != nil {

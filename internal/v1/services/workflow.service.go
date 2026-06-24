@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"strconv"
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
@@ -97,6 +98,7 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 			{ "Key1": "Value1", "Key2": "Value2" }
 		]
 	`)
+	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
 
 	contentType := writer.FormDataContentType()
 

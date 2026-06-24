@@ -11,6 +11,7 @@ workflows {
     id uint pk
     title string
     description string
+    prompt string
     schemas jsonb
     user_id uint fk
 }

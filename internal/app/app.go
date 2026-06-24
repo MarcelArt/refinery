@@ -15,17 +15,20 @@ import (
 )
 
 type App struct {
-	uHandler *handlers.UserHandler
-	wHandler *handlers.WorkflowHandler
+	uHandler  *handlers.UserHandler
+	wHandler  *handlers.WorkflowHandler
+	erHandler *handlers.ExtractionResultHandler
 }
 
 func New(
 	uHandler *handlers.UserHandler,
 	wHandler *handlers.WorkflowHandler,
+	erHandler *handlers.ExtractionResultHandler,
 ) *App {
 	return &App{
-		uHandler: uHandler,
-		wHandler: wHandler,
+		uHandler:  uHandler,
+		wHandler:  wHandler,
+		erHandler: erHandler,
 	}
 }
 
@@ -47,7 +50,7 @@ func (a *App) Run() error {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	api := r.Group("/api")
-	routes.SetupRoutes(api, a.uHandler, a.wHandler)
+	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler)
 
 	// webroutes.SetupWebRoutes(r, a.waHandler)
 

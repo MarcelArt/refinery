@@ -46,6 +46,7 @@ func MigrateDB() error {
 	err := db.AutoMigrate(
 		entities.User{},
 		entities.Workflow{},
+		entities.ExtractionResult{},
 	// entities.Role{},
 	// entities.UserRole{},
 	)
@@ -62,6 +63,7 @@ func DropDB() error {
 	err := db.Migrator().DropTable(
 		// entities.UserRole{},
 		// entities.Role{},
+		entities.ExtractionResult{},
 		entities.Workflow{},
 		entities.User{},
 	)

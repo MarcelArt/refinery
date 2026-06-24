@@ -14,6 +14,10 @@ type Workflow struct {
 	Description string                       `gorm:"not null" json:"description"`
 	Prompt      string                       `json:"prompt"`
 	Schemas     jsonb.JSONB[workflowSchemas] `json:"schemas"`
+
+	UserID uint `json:"userId"`
+
+	User *User `json:"user,omitzero"`
 }
 
 type WorkflowSchema struct {
