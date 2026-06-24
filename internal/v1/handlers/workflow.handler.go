@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/common"
-	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/v1/models"
 	"github.com/MarcelArt/refinery/internal/v1/services"
 	"github.com/gin-gonic/gin"
@@ -12,14 +11,14 @@ import (
 )
 
 type WorkflowHandler struct {
-	service services.IWorkflowService
+	service  services.IWorkflowService
+	nService services.IN8NService
 }
 
-var _ = entities.Workflow{}
-
-func NewWorkflowHandler(service services.IWorkflowService) *WorkflowHandler {
+func NewWorkflowHandler(service services.IWorkflowService, nService services.IN8NService) *WorkflowHandler {
 	return &WorkflowHandler{
-		service: service,
+		service:  service,
+		nService: nService,
 	}
 }
 
@@ -147,4 +146,41 @@ func (h *WorkflowHandler) GetByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, common.ResultOk(workflow, "Workflow found"))
+}
+
+// Upload godoc
+// @Summary      Upload file to workflow
+// @Description  Upload a file to be processed by a workflow by ID
+// @Tags         workflows
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        id    path      string  true  "Workflow ID"
+// @Param        file  formData  file    true  "File to upload"
+// @Success      200   {object}  common.Result[any]
+// @Failure      400   {object}  common.Result[string]
+// @Failure      401   {object}  common.Result[string]
+// @Failure      500   {object}  common.Result[string]
+// @Security     ApiKeyAuth
+// @Router       /v1/workflows/{id}/upload [post]
+func (h *WorkflowHandler) Upload(c *gin.Context) {
+	id := c.Param("id")
+	formFile, err := c.FormFile("file")
+	if err != nil {
+		_, res := common.ResultErr(err, "failed uploading file")
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+	file, err := formFile.Open()
+	if err != nil {
+		c.JSON(common.ResultErr(err, "failed to open file"))
+		return
+	}
+	defer file.Close()
+
+	if err := h.service.UploadToWorkflow(c, id, formFile.Filename, file); err != nil {
+		c.JSON(common.ResultErr(err, "failed upload to workflow"))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.ResultOk[any](nil, "Workflow started"))
 }

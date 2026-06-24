@@ -15,7 +15,7 @@ var ErrNotStringSlice = errors.New("not string slice")
 
 func GenerateJWTPair(claims map[string]any, permissions any, isRemember bool) (string, string, error) {
 	today := time.Now()
-	atExp := time.Minute * 5
+	atExp := time.Hour * 5
 	rtExp := enums.Day
 	if isRemember {
 		rtExp = enums.Month
@@ -57,7 +57,7 @@ func GenerateJWTPair(claims map[string]any, permissions any, isRemember bool) (s
 // }
 
 func ParseToken(tokenStr string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}

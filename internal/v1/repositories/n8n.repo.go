@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/configs"
@@ -9,7 +11,7 @@ import (
 )
 
 type IN8NRepo interface {
-	PostWebhook(path string) error
+	PostWebhookForm(path string, body io.Reader, contentType string) error
 }
 
 type N8NRepo struct {
@@ -24,9 +26,13 @@ func NewN8NRepo() *N8NRepo {
 	}
 }
 
-func (r *N8NRepo) PostWebhook(path string) error {
-	url := fmt.Sprintf("%s/%s", r.baseURL, path)
-	_, err := fetch.Fetch[any](r.client, http.MethodPost, url, nil, nil)
+func (r *N8NRepo) PostWebhookForm(path string, body io.Reader, contentType string) error {
+	url := fmt.Sprintf("%s/webhook-test/%s", r.baseURL, path)
+	log.Println("url :>> ", url)
+	// log.Println("body :>> ", body)
+	log.Println("contentType :>> ", contentType)
+	_, err := fetch.FormFile[any](r.client, http.MethodPost, url, body, contentType, nil)
+	// _, err := fetch.FormFile[any](r.client, http.MethodPost, "https://webhook.site/b1052ffc-daf9-427c-945f-6cfa6eb5b105", body, contentType, nil)
 
 	return err
 }

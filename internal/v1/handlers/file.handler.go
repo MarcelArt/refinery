@@ -5,10 +5,10 @@ import (
 )
 
 type FileHandler struct {
-	service services.IFileService
+	service services.IN8NService
 }
 
-func NewFileHandler(service services.IFileService) *FileHandler {
+func NewFileHandler(service services.IN8NService) *FileHandler {
 	return &FileHandler{
 		service: service,
 	}

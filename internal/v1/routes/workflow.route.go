@@ -10,8 +10,12 @@ func setupWorkflowRoutes(v1 *gin.RouterGroup, authM *middlewares.AuthMiddleware,
 	workflows := v1.Group("/workflows", authM.Authn)
 
 	workflows.POST("/", h.Create)
+	workflows.POST("/:id/upload", h.Upload)
+
 	workflows.GET("/", h.Read)
 	workflows.GET("/:id", h.GetByID)
+
 	workflows.PUT("/:id", h.Update)
+
 	workflows.DELETE("/:id", h.Delete)
 }
