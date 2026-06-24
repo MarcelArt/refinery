@@ -34,8 +34,10 @@ WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
-# Copy compiled binary from builder
-COPY --from=builder /app/refinery /app/refinery
+# Copy compiled binary and web UI resources from builder with non-root ownership
+COPY --chown=appuser:appgroup --from=builder /app/refinery /app/refinery
+COPY --chown=appuser:appgroup --from=builder /app/internal/web/views /app/internal/web/views
+COPY --chown=appuser:appgroup --from=builder /app/internal/web/public /app/internal/web/public
 
 # Use the non-root user
 USER appuser
