@@ -52,6 +52,7 @@ Files are split per domain, one route per file, but multiple related structs/fun
   - `internal/web/views/` — `.html` templates (`layout.html` is the base layout).
   - `internal/web/public/` — `css/` and `scripts/` static assets served directly.
 - When adding a frontend page for an existing backend resource, reuse the backend services (don't reimplement data access in the web layer).
+- **Do not design generic "slop" UI.** Load the `frontend-design` skill before building or restyling any UI. Avoid the common AI-generated tells: excessive padding/margin, cards that jump/translate on hover, borders that brighten on hover, overused gradients, thick borders, and heavy/overused shadows or glow effects. Aim for deliberate, restrained styling instead.
 
 ## Verification you can do
 
