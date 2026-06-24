@@ -9,9 +9,11 @@ import (
 func SetupRoutes(
 	api *gin.RouterGroup,
 	uHandler *handlers.UserHandler,
+	wHandler *handlers.WorkflowHandler,
 ) {
 	authM := middlewares.NewAuthMiddleware()
 
 	v1 := api.Group("/v1")
 	setupUserRoutes(v1, authM, uHandler)
+	setupWorkflowRoutes(v1, authM, wHandler)
 }

@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/MarcelArt/refinery/internal/configs"
@@ -15,13 +16,16 @@ import (
 
 type App struct {
 	uHandler *handlers.UserHandler
+	wHandler *handlers.WorkflowHandler
 }
 
 func New(
 	uHandler *handlers.UserHandler,
+	wHandler *handlers.WorkflowHandler,
 ) *App {
 	return &App{
 		uHandler: uHandler,
+		wHandler: wHandler,
 	}
 }
 
@@ -43,10 +47,12 @@ func (a *App) Run() error {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	api := r.Group("/api")
-	routes.SetupRoutes(api, a.uHandler)
+	routes.SetupRoutes(api, a.uHandler, a.wHandler)
 
 	// webroutes.SetupWebRoutes(r, a.waHandler)
 
 	port := fmt.Sprintf(":%s", configs.Env.PORT)
+	log.Printf("Listening on http://localhost%s", port)
+	log.Printf("Open swagger doc on http://localhost%s/swagger/index.html", port)
 	return r.Run(port)
 }

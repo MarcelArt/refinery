@@ -17,13 +17,16 @@ func New() *dig.Container {
 
 	c.Provide(repositories.NewN8NRepo, dig.As(new(repositories.IN8NRepo)))
 	c.Provide(repositories.NewUserRepo, dig.As(new(repositories.IUserRepo)))
+	c.Provide(repositories.NewWorkflowRepo, dig.As(new(repositories.IWorkflowRepo)))
 
 	c.Provide(services.NewFileService, dig.As(new(services.IFileService)))
 	c.Provide(services.NewUserService, dig.As(new(services.IUserService)))
+	c.Provide(services.NewWorkflowService, dig.As(new(services.IWorkflowService)))
 
 	c.Provide(middlewares.NewAuthMiddleware)
 
 	c.Provide(handlers.NewUserHandler)
+	c.Provide(handlers.NewWorkflowHandler)
 
 	c.Provide(app.New)
 
