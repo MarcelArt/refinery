@@ -1,17 +1,20 @@
 {{ define "content" }}
 <header class="page-header">
-    <div style="display: flex; flex-direction: column; gap: 4px;">
-        <h1 class="page-title" style="font-size: 20px;">Extraction Results</h1>
-        <p style="font-size: 13px; color: var(--text-secondary);">Workflow: <strong>{{ .WorkflowTitle }}</strong></p>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="/workflows" class="btn-back"
+           hx-get="/workflows"
+           hx-target=".main-wrapper"
+           hx-select=".main-wrapper"
+           hx-swap="outerHTML"
+           hx-push-url="true"
+           title="Back to workflows">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+            <h1 class="page-title" style="font-size: 20px; margin: 0;">Extraction Results</h1>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Workflow: <strong>{{ .WorkflowTitle }}</strong></p>
+        </div>
     </div>
-    <a href="/workflows" class="btn" style="width: auto; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; padding: 6px 12px;"
-       hx-get="/workflows"
-       hx-target=".main-wrapper"
-       hx-select=".main-wrapper"
-       hx-swap="outerHTML"
-       hx-push-url="true">
-        Back to workflows
-    </a>
 </header>
 
 <div class="results-page-layout" x-data="{ selectedRunId: {{ if .SelectedResult }}{{ .SelectedResult.ID }}{{ else }}null{{ end }} }">

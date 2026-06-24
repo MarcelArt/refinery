@@ -189,6 +189,30 @@ a:hover {
     transform: scale(0.98);
 }
 
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.btn-back:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: rgba(16, 185, 129, 0.05);
+}
+
+.btn-back:active {
+    transform: scale(0.95);
+}
+
 .auth-footer {
     text-align: center;
     margin-top: 24px;
