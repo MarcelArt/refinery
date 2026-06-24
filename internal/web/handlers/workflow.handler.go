@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/v1/services"
+	"github.com/MarcelArt/refinery/internal/web/viewmodels"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,8 +38,25 @@ func (h *WorkflowWebHandler) ShowWorkflows(c *gin.Context) {
 		return
 	}
 
+	// Fetch workflows owned by the current logged-in user
+	_, pages := h.workflowService.GetByUserID(c, userId)
+
+	// Map backend model pages to frontend view models
+	workflowsVM := make([]viewmodels.WorkflowRowViewModel, 0, len(pages))
+	for _, p := range pages {
+		schemas, _ := p.Schemas.Deserialize()
+		workflowsVM = append(workflowsVM, viewmodels.WorkflowRowViewModel{
+			ID:          p.ID,
+			Title:       p.Title,
+			Description: p.Description,
+			Prompt:      p.Prompt,
+			Schemas:     schemas,
+		})
+	}
+
 	renderTemplate(c, http.StatusOK, "workflows.html", gin.H{
-		"Title": "Workflows",
-		"User":  user,
+		"Title":     "Workflows",
+		"User":      user,
+		"Workflows": workflowsVM,
 	})
 }

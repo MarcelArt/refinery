@@ -19,6 +19,7 @@ import (
 type IWorkflowService interface {
 	common.IBaseCrudService[entities.Workflow, models.WorkflowInput, models.WorkflowPage]
 	UploadToWorkflow(c context.Context, id any, filename string, file multipart.File) error
+	GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage)
 }
 
 type WorkflowService struct {
@@ -104,4 +105,8 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 
 	writer.Close()
 	return s.nRepo.PostWebhookForm("48c2f9e5-a3a5-4582-9f47-7792c790d701", &requestBody, contentType)
+}
+
+func (s *WorkflowService) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage) {
+	return s.repo.GetByUserID(c, userID)
 }

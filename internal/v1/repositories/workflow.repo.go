@@ -14,6 +14,7 @@ import (
 
 type IWorkflowRepo interface {
 	common.IBaseCrudRepo[entities.Workflow, models.WorkflowInput, models.WorkflowPage]
+	GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage)
 }
 
 type WorkflowRepo struct {
@@ -81,4 +82,23 @@ func (r *WorkflowRepo) GetByID(c context.Context, id any) (entities.Workflow, er
 	workflow, err := gorm.G[entities.Workflow](r.db).Where("id = ?", id).First(c)
 
 	return workflow, err
+}
+
+func (r *WorkflowRepo) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage) {
+	workflows := make([]models.WorkflowPage, 0)
+	query := `
+		SELECT 
+			*
+		FROM workflows w
+		where w.deleted_at isnull
+		and w.user_id = ?
+	`
+
+	stmt := r.db.Raw(query, userID)
+
+	pg := paginate.New()
+
+	page := pg.With(stmt).Request(c.Request).Response(&workflows)
+
+	return page, workflows
 }
