@@ -35,7 +35,7 @@ jobs:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/refinery
           tags: |
             type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       # Step 5: Build and push Docker image
       - name: Build and push Docker image
