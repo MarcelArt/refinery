@@ -2,9 +2,14 @@
 <header class="page-header">
     <h1 class="page-title">Workflows</h1>
     {{ if .Workflows }}
-    <button class="btn btn-primary" style="width: auto; opacity: 0.7; cursor: not-allowed;" disabled>
+    <a href="/workflows/create" class="btn btn-primary" style="width: auto;"
+       hx-get="/workflows/create"
+       hx-target=".main-wrapper"
+       hx-select=".main-wrapper"
+       hx-swap="outerHTML"
+       hx-push-url="true">
         <span>Create Workflow</span>
-    </button>
+    </a>
     {{ end }}
 </header>
 
@@ -55,9 +60,14 @@
     </div>
     <h2 class="placeholder-title">No Workflows Yet</h2>
     <p class="placeholder-desc">Connect your data sources, specify extraction schemas, and start extracting structured data automatically.</p>
-    <button class="btn btn-primary" style="width: auto; opacity: 0.7; cursor: not-allowed;" disabled>
+    <a href="/workflows/create" class="btn btn-primary" style="width: auto;"
+       hx-get="/workflows/create"
+       hx-target=".main-wrapper"
+       hx-select=".main-wrapper"
+       hx-swap="outerHTML"
+       hx-push-url="true">
         <span>Create Workflow</span>
-    </button>
+    </a>
 </div>
 {{ end }}
 {{ end }}
