@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"strings"
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
@@ -77,13 +76,8 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 	if err != nil {
 		return fmt.Errorf("failed deserialize schema: %w", err)
 	}
-	var schemaStr strings.Builder
-	schemaStr.WriteString("| Key    | Type          | Description              | Example             |\n")
-	schemaStr.WriteString("| ------ | ------------- | ------------------------ | ------------------- |\n")
-	for _, schema := range schemas {
-		fmt.Fprintf(&schemaStr, "| %s | %s | %s | %s |\n", schema.Key, schema.Type, schema.Description, schema.Example)
-	}
-	prompt := fmt.Sprintf("based on markdown text above, extract the information into json format without markdown code block with this specification:\n\n%s", schemaStr.String())
+	schemaStr := schemas.ToMarkdownTable()
+	prompt := fmt.Sprintf("based on markdown text above, extract the information into json format without markdown code block with this specification:\n\n%s", schemaStr)
 
 	writer.WriteField("prompt", prompt)
 	writer.WriteField("system", "you may only reply in json format without markdown code block")
