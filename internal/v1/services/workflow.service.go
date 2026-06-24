@@ -77,10 +77,26 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 		return fmt.Errorf("failed deserialize schema: %w", err)
 	}
 	schemaStr := schemas.ToMarkdownTable()
-	prompt := fmt.Sprintf("based on markdown text above, extract the information into json format without markdown code block with this specification:\n\n%s", schemaStr)
+	prompt := fmt.Sprintf(`
+		%s
+
+		### Extraction Specification
+		%s
+
+		### Source Text
+	`, workflow.Prompt, schemaStr)
 
 	writer.WriteField("prompt", prompt)
-	writer.WriteField("system", "you may only reply in json format without markdown code block")
+	writer.WriteField("system", `
+		You are a precise data extraction engine. Analyze the source text and extract all matching entities based on the user's specification table. 
+
+		CRITICAL: Your entire response must be a single JSON Array containing one or more JSON Objects. Even if you only extract a single row or item, it MUST be wrapped inside a JSON Array. Do not use an outer wrapper object.
+
+		Example output structure:
+		[
+			{ "Key1": "Value1", "Key2": "Value2" }
+		]
+	`)
 
 	contentType := writer.FormDataContentType()
 

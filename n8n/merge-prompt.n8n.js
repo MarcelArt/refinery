@@ -3,7 +3,7 @@ const node1Data = $('HTTP Request').first().json.data;
 const node2Body = $('Webhook').first().json.body;
 
 // Combine the markdown instruction and the data into one prompt string
-const combinedPrompt = `${node1Data}\n\n${node2Body.prompt}`;
+const combinedPrompt = `${node2Body.prompt}\n${node1Data}`;
 
 // Extract the system message
 const systemMessage = node2Body.system;
