@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/common"
@@ -42,6 +43,7 @@ func (h *WorkflowHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, res)
 		return
 	}
+	log.Println("userID :>> ", userID)
 
 	var workflow models.WorkflowInput
 	if err := c.ShouldBindJSON(&workflow); err != nil {
@@ -50,6 +52,7 @@ func (h *WorkflowHandler) Create(c *gin.Context) {
 		return
 	}
 	workflow.UserID = uint(userID)
+	log.Println("workflow :>> ", workflow)
 
 	id, err := h.service.Create(c, workflow)
 	if err != nil {

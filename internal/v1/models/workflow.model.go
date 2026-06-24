@@ -13,7 +13,7 @@ type WorkflowInput struct {
 	Prompt      string                                 `json:"prompt"`
 	Schemas     jsonb.JSONB[[]entities.WorkflowSchema] `json:"schemas"`
 
-	UserID uint `json:"-"`
+	UserID uint `json:"userId"`
 }
 
 type WorkflowPage struct {
