@@ -7,6 +7,8 @@ import (
 	"github.com/MarcelArt/refinery/internal/v1/middlewares"
 	"github.com/MarcelArt/refinery/internal/v1/repositories"
 	"github.com/MarcelArt/refinery/internal/v1/services"
+	webhandlers "github.com/MarcelArt/refinery/internal/web/handlers"
+	webroutes "github.com/MarcelArt/refinery/internal/web/routes"
 	"go.uber.org/dig"
 )
 
@@ -30,6 +32,11 @@ func New() *dig.Container {
 	c.Provide(handlers.NewUserHandler)
 	c.Provide(handlers.NewWorkflowHandler)
 	c.Provide(handlers.NewExtractionResultHandler)
+
+	// Web components
+	c.Provide(webroutes.NewWebAuthMiddleware)
+	c.Provide(webhandlers.NewAuthWebHandler)
+	c.Provide(webhandlers.NewWorkflowWebHandler)
 
 	c.Provide(app.New)
 

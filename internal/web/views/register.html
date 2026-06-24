@@ -1,0 +1,50 @@
+{{ define "content" }}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+                <div class="logo">
+                    <span class="logo-icon">R</span>
+                    <span>Refinery</span>
+                </div>
+            </div>
+            <h1 class="auth-title">Create Account</h1>
+            <p class="auth-subtitle">Get started with automated data extraction</p>
+        </div>
+
+        <!-- Form submission target error placeholder -->
+        <div id="error-alert"></div>
+
+        <form hx-post="/register" hx-target="#error-alert" hx-swap="outerHTML">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. johndoe" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="e.g. john@example.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <span>Create Account</span>
+                <span class="htmx-indicator spinner"></span>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="/login">Sign in</a>
+        </div>
+    </div>
+</div>
+{{ end }}

@@ -8,6 +8,8 @@ import (
 	"github.com/MarcelArt/refinery/internal/configs"
 	"github.com/MarcelArt/refinery/internal/v1/handlers"
 	"github.com/MarcelArt/refinery/internal/v1/routes"
+	webhandlers "github.com/MarcelArt/refinery/internal/web/handlers"
+	webroutes "github.com/MarcelArt/refinery/internal/web/routes"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -15,20 +17,29 @@ import (
 )
 
 type App struct {
-	uHandler  *handlers.UserHandler
-	wHandler  *handlers.WorkflowHandler
-	erHandler *handlers.ExtractionResultHandler
+	uHandler   *handlers.UserHandler
+	wHandler   *handlers.WorkflowHandler
+	erHandler  *handlers.ExtractionResultHandler
+	authM      *webroutes.WebAuthMiddleware
+	authWebH   *webhandlers.AuthWebHandler
+	wfWebH     *webhandlers.WorkflowWebHandler
 }
 
 func New(
 	uHandler *handlers.UserHandler,
 	wHandler *handlers.WorkflowHandler,
 	erHandler *handlers.ExtractionResultHandler,
+	authM *webroutes.WebAuthMiddleware,
+	authWebH *webhandlers.AuthWebHandler,
+	wfWebH *webhandlers.WorkflowWebHandler,
 ) *App {
 	return &App{
-		uHandler:  uHandler,
-		wHandler:  wHandler,
-		erHandler: erHandler,
+		uHandler:   uHandler,
+		wHandler:   wHandler,
+		erHandler:  erHandler,
+		authM:      authM,
+		authWebH:   authWebH,
+		wfWebH:     wfWebH,
 	}
 }
 
@@ -52,7 +63,7 @@ func (a *App) Run() error {
 	api := r.Group("/api")
 	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler)
 
-	// webroutes.SetupWebRoutes(r, a.waHandler)
+	webroutes.SetupWebRoutes(r, a.authM, a.authWebH, a.wfWebH)
 
 	port := fmt.Sprintf(":%s", configs.Env.PORT)
 	log.Printf("Listening on http://localhost%s", port)
