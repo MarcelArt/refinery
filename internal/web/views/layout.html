@@ -16,6 +16,9 @@
     <link rel="stylesheet" href="/public/css/styles.css">
 </head>
 <body>
+    <!-- Global Slim Progress Loading Bar -->
+    <div id="top-loading-bar"></div>
+
     {{ if .HideLayout }}
         {{ template "content" . }}
     {{ else }}
@@ -93,5 +96,41 @@
             </div>
         </div>
     {{ end }}
+
+    <!-- Global Progress Bar Event Listeners -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingBar = document.getElementById('top-loading-bar');
+            let loadingTimer;
+
+            document.body.addEventListener('htmx:configRequest', () => {
+                clearTimeout(loadingTimer);
+                // Set initial styling and width
+                loadingBar.style.transition = 'width 0.4s ease, opacity 0.2s ease';
+                loadingBar.style.opacity = '1';
+                loadingBar.style.width = '30%';
+                
+                // Slow progressive ticks
+                loadingTimer = setTimeout(() => {
+                    loadingBar.style.width = '60%';
+                    loadingTimer = setTimeout(() => {
+                        loadingBar.style.width = '85%';
+                    }, 800);
+                }, 400);
+            });
+
+            document.body.addEventListener('htmx:afterRequest', () => {
+                clearTimeout(loadingTimer);
+                // Complete loading bar sequence
+                loadingBar.style.width = '100%';
+                loadingTimer = setTimeout(() => {
+                    loadingBar.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingBar.style.width = '0%';
+                    }, 200);
+                }, 200);
+            });
+        });
+    </script>
 </body>
 </html>
