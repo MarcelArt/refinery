@@ -12,3 +12,9 @@ migrate:
 
 migrate-force:
 	@go run main.go migrate --drop
+
+compose-down:
+	@docker compose down
+
+compose: compose-down
+	@docker compose up -d
