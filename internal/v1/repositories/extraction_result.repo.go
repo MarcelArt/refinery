@@ -92,6 +92,7 @@ func (r *ExtractionResultRepo) GetByWorkflowID(c *gin.Context, workflowID any) (
 		FROM extraction_results er
 		where er.deleted_at isnull
 		and er.workflow_id = ?
+		order by er.id desc
 	`
 
 	stmt := r.db.Raw(query, workflowID)
