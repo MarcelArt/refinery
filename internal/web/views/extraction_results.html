@@ -1,91 +1,248 @@
 {{ define "content" }}
-<header class="page-header">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <a href="/workflows" class="btn-back"
-           hx-get="/workflows"
-           hx-target=".main-wrapper"
-           hx-select=".main-wrapper"
-           hx-swap="outerHTML"
-           hx-push-url="true"
-           title="Back to workflows">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </a>
-        <div style="display: flex; flex-direction: column; gap: 2px;">
-            <h1 class="page-title" style="font-size: 20px; margin: 0;">Extraction Results</h1>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Workflow: <strong>{{ .WorkflowTitle }}</strong></p>
+<div x-data="{ showUploadModal: false, selectedFile: null, dragOver: false, uploading: false }" style="width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <style>
+        /* Modal Overlay and Modal Card layout containment */
+        .modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(7, 10, 19, 0.85) !important;
+            backdrop-filter: blur(4px) !important;
+            z-index: 9999 !important;
+            display: flex;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 20px !important;
+            box-sizing: border-box !important;
+        }
+
+        .modal-card {
+            background-color: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            width: 100% !important;
+            max-width: 600px !important;
+            display: flex;
+            flex-direction: column !important;
+            max-height: 90vh !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+        }
+    </style>
+    <header class="page-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a href="/workflows" class="btn-back"
+               hx-get="/workflows"
+               hx-target=".main-wrapper"
+               hx-select=".main-wrapper"
+               hx-swap="outerHTML"
+               hx-push-url="true"
+               title="Back to workflows">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <h1 class="page-title" style="font-size: 20px; margin: 0;">Extraction Results</h1>
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Workflow: <strong>{{ .WorkflowTitle }}</strong></p>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <button type="button" 
+                    class="btn btn-primary" 
+                    style="width: auto; display: flex; align-items: center; gap: 8px;"
+                    @click="showUploadModal = true; selectedFile = null; document.getElementById('file-input-modal').value = ''; document.getElementById('modal-upload-error').innerHTML = '';">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Start Workflow</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="results-page-layout" x-data="{ selectedRunId: {{ if .SelectedResult }}{{ .SelectedResult.ID }}{{ else }}null{{ end }} }">
+        <!-- Left Inner Sidebar (Runs List) -->
+        <aside class="results-sidebar">
+            <div style="padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color);">
+                Extraction Runs
+            </div>
+            
+            {{ if .Results }}
+            <ul class="results-list" style="margin: 0; padding: 0; list-style: none;">
+                {{ $workflowId := .WorkflowID }}
+                {{ range .Results }}
+                <li class="result-item" :class="{ 'active': selectedRunId === {{ .ID }} }">
+                    <a href="/workflows/{{ $workflowId }}/results/{{ .ID }}"
+                       hx-get="/workflows/{{ $workflowId }}/results/details/{{ .ID }}"
+                       hx-target="#result-details"
+                       hx-swap="innerHTML"
+                       hx-push-url="/workflows/{{ $workflowId }}/results/{{ .ID }}"
+                       @click="selectedRunId = {{ .ID }}">
+                        <span class="result-run-id">Run #{{ .ID }}</span>
+                        <span class="result-run-date">{{ .CreatedAt.Format "2006-01-02 15:04" }}</span>
+                    </a>
+                </li>
+                {{ end }}
+            </ul>
+
+            <!-- Inner Sidebar Pagination Footer -->
+            <div class="table-footer" style="padding: 10px 12px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; align-items: stretch;">
+                <div style="font-size: 11px; text-align: center; color: var(--text-secondary);">
+                    Run <strong>{{ .Pagination.Start }}</strong> - <strong>{{ .Pagination.End }}</strong> of <strong>{{ .Pagination.Total }}</strong>
+                </div>
+                <div class="pagination-controls" style="justify-content: center;">
+                    <a href="/workflows/{{ $workflowId }}/results?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+                       hx-get="/workflows/{{ $workflowId }}/results?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+                       hx-target=".main-wrapper"
+                       hx-select=".main-wrapper"
+                       hx-swap="outerHTML"
+                       hx-push-url="true"
+                       class="pagination-btn {{ if .Pagination.First }}disabled{{ end }}"
+                       style="padding: 4px 8px; font-size: 10px; flex: 1; text-align: center;">
+                        Prev
+                    </a>
+                    <a href="/workflows/{{ $workflowId }}/results?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+                       hx-get="/workflows/{{ $workflowId }}/results?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+                       hx-target=".main-wrapper"
+                       hx-select=".main-wrapper"
+                       hx-swap="outerHTML"
+                       hx-push-url="true"
+                       class="pagination-btn {{ if .Pagination.Last }}disabled{{ end }}"
+                       style="padding: 4px 8px; font-size: 10px; flex: 1; text-align: center;">
+                        Next
+                    </a>
+                </div>
+            </div>
+            {{ else }}
+            <div style="padding: 24px 16px; text-align: center; font-size: 12px; color: var(--text-muted); font-style: italic;">
+                No runs recorded
+            </div>
+            {{ end }}
+        </aside>
+
+        <!-- Right Container (Run Details Dynamic Table) -->
+        <div id="result-details" class="result-details-container">
+            {{ if .SelectedResult }}
+                {{ template "result_details" .SelectedResult }}
+            {{ else }}
+                <div style="text-align: center; color: var(--text-muted); padding: 40px 20px; font-style: italic; font-size: 13px;">
+                    No extraction results found for this workflow.
+                </div>
+            {{ end }}
         </div>
     </div>
-</header>
 
-<div class="results-page-layout" x-data="{ selectedRunId: {{ if .SelectedResult }}{{ .SelectedResult.ID }}{{ else }}null{{ end }} }">
-    <!-- Left Inner Sidebar (Runs List) -->
-    <aside class="results-sidebar">
-        <div style="padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color);">
-            Extraction Runs
-        </div>
+    <!-- Modal Dialog for Workflow Start / File Upload -->
+    <div x-show="showUploadModal" 
+         x-cloak
+         class="modal-overlay" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @keydown.escape.window="if (!uploading) showUploadModal = false">
         
-        {{ if .Results }}
-        <ul class="results-list" style="margin: 0; padding: 0; list-style: none;">
-            {{ $workflowId := .WorkflowID }}
-            {{ range .Results }}
-            <li class="result-item" :class="{ 'active': selectedRunId === {{ .ID }} }">
-                <a href="/workflows/{{ $workflowId }}/results/{{ .ID }}"
-                   hx-get="/workflows/{{ $workflowId }}/results/details/{{ .ID }}"
-                   hx-target="#result-details"
-                   hx-swap="innerHTML"
-                   hx-push-url="/workflows/{{ $workflowId }}/results/{{ .ID }}"
-                   @click="selectedRunId = {{ .ID }}">
-                    <span class="result-run-id">Run #{{ .ID }}</span>
-                    <span class="result-run-date">{{ .CreatedAt.Format "2006-01-02 15:04" }}</span>
-                </a>
-            </li>
-            {{ end }}
-        </ul>
-
-        <!-- Inner Sidebar Pagination Footer -->
-        <div class="table-footer" style="padding: 10px 12px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; align-items: stretch;">
-            <div style="font-size: 11px; text-align: center; color: var(--text-secondary);">
-                Run <strong>{{ .Pagination.Start }}</strong> - <strong>{{ .Pagination.End }}</strong> of <strong>{{ .Pagination.Total }}</strong>
+        <div @click.away="if (!uploading) showUploadModal = false"
+             class="modal-card"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 scale-95">
+            
+            <!-- Modal Header -->
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">Start Extraction Workflow</h3>
+                <button type="button" @click="showUploadModal = false" :disabled="uploading" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px;" class="btn-icon-hover">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-            <div class="pagination-controls" style="justify-content: center;">
-                <a href="/workflows/{{ $workflowId }}/results?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
-                   hx-get="/workflows/{{ $workflowId }}/results?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
-                   hx-target=".main-wrapper"
-                   hx-select=".main-wrapper"
-                   hx-swap="outerHTML"
-                   hx-push-url="true"
-                   class="pagination-btn {{ if .Pagination.First }}disabled{{ end }}"
-                   style="padding: 4px 8px; font-size: 10px; flex: 1; text-align: center;">
-                    Prev
-                </a>
-                <a href="/workflows/{{ $workflowId }}/results?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
-                   hx-get="/workflows/{{ $workflowId }}/results?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
-                   hx-target=".main-wrapper"
-                   hx-select=".main-wrapper"
-                   hx-swap="outerHTML"
-                   hx-push-url="true"
-                   class="pagination-btn {{ if .Pagination.Last }}disabled{{ end }}"
-                   style="padding: 4px 8px; font-size: 10px; flex: 1; text-align: center;">
-                    Next
-                </a>
+            
+            <!-- Modal Body -->
+            <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Workflow Preview Card -->
+                <div style="display: flex; flex-direction: column; gap: 14px; background-color: var(--bg-dark); border: 1px solid var(--border-color); padding: 16px; border-radius: 6px;">
+                    <!-- Prompt -->
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--accent); letter-spacing: 0.03em;">Extraction Specification Prompt</span>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin: 0; line-height: 1.5; white-space: pre-wrap;">{{ .WorkflowPrompt }}</p>
+                    </div>
+                    
+                    <!-- Schemas -->
+                    <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px;">
+                        <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--accent); letter-spacing: 0.03em;">Expected Target Fields</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {{ range .WorkflowSchemas }}
+                            <span class="schema-pill" style="font-size: 10px; padding: 2px 8px; border-radius: 4px; background-color: rgba(16, 185, 129, 0.08); color: var(--accent); border: 1px solid rgba(16, 185, 129, 0.15);" title="{{ .Description }} ({{ .Type }})">
+                                <strong>{{ .Key }}</strong>: <span style="opacity: 0.8; font-size: 9px;">{{ .Type }}</span>
+                            </span>
+                            {{ else }}
+                            <span class="schema-empty" style="font-size: 11px;">No schema fields defined.</span>
+                            {{ end }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Container -->
+                <div id="modal-upload-error"></div>
+
+                <!-- Drag & Drop Area -->
+                <div @dragover.prevent="dragOver = true"
+                     @dragleave.prevent="dragOver = false"
+                     @drop.prevent="dragOver = false; if ($event.dataTransfer.files.length) { selectedFile = $event.dataTransfer.files[0]; document.getElementById('file-input-modal').files = $event.dataTransfer.files; }"
+                     :class="dragOver ? 'dropzone-active' : 'dropzone-normal'"
+                     style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 32px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; background-color: rgba(255,255,255,0.01);"
+                     @click="if (!uploading) document.getElementById('file-input-modal').click()">
+                    
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background-color: var(--bg-dark); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); border: 1px solid var(--border-color); transition: all 0.2s ease;" class="upload-icon-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);" x-text="selectedFile ? selectedFile.name : 'Choose a file or drag it here'">Choose a file or drag it here</span>
+                        <span style="font-size: 11px; color: var(--text-muted);" x-text="selectedFile ? (Math.round(selectedFile.size / 1024) + ' KB') : 'Supports PDF, Word, TXT, CSV, JPEG, PNG'">Supports PDF, Word, TXT, CSV, JPEG, PNG</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background-color: var(--bg-dark);">
+                <form id="upload-form-modal"
+                      hx-post="/workflows/{{ .WorkflowID }}/results/upload"
+                      hx-encoding="multipart/form-data"
+                      hx-target="#modal-upload-error"
+                      hx-swap="innerHTML"
+                      @htmx:xhr:progress="uploading = true"
+                      @htmx:after-request="uploading = false;">
+                    <input type="file" 
+                           name="file" 
+                           id="file-input-modal" 
+                           style="display: none;" 
+                           @change="if ($event.target.files.length) { selectedFile = $event.target.files[0]; }" />
+                    
+                    <div style="display: flex; gap: 12px;">
+                        <button type="button" 
+                                class="btn" 
+                                style="width: auto; background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; padding: 8px 16px;"
+                                :disabled="uploading"
+                                @click="showUploadModal = false">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="btn btn-primary" 
+                                style="width: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 8px 16px;"
+                                :disabled="!selectedFile || uploading">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span x-text="uploading ? 'Extracting...' : 'Start Extraction'">Start Extraction</span>
+                            <span x-show="uploading" class="spinner" style="margin-left: 4px; width: 12px; height: 12px; border-width: 2px;"></span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-        {{ else }}
-        <div style="padding: 24px 16px; text-align: center; font-size: 12px; color: var(--text-muted); font-style: italic;">
-            No runs recorded
-        </div>
-        {{ end }}
-    </aside>
-
-    <!-- Right Container (Run Details Dynamic Table) -->
-    <div id="result-details" class="result-details-container">
-        {{ if .SelectedResult }}
-            {{ template "result_details" .SelectedResult }}
-        {{ else }}
-            <div style="text-align: center; color: var(--text-muted); padding: 40px 20px; font-style: italic; font-size: 13px;">
-                No extraction results found for this workflow.
-            </div>
-        {{ end }}
     </div>
 </div>
 {{ end }}

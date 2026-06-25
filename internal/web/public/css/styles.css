@@ -17,6 +17,10 @@
     --sidebar-width: 260px;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -842,6 +846,83 @@ a:hover {
     white-space: normal;
     word-break: break-word;
     max-width: 500px;
+}
+
+#upload-error .alert-error {
+    margin-bottom: 0;
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+#modal-upload-error .alert-error {
+    margin-bottom: 0;
+    padding: 10px 14px;
+    font-size: 13px;
+}
+
+/* Modal Dropzone and Drag-n-Drop hover effects */
+.dropzone-normal {
+    border-color: var(--border-color) !important;
+}
+
+.dropzone-normal:hover {
+    border-color: var(--accent) !important;
+    background-color: rgba(16, 185, 129, 0.02) !important;
+}
+
+.dropzone-normal:hover .upload-icon-container {
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    background-color: rgba(16, 185, 129, 0.05) !important;
+    transform: translateY(-2px);
+}
+
+.dropzone-active {
+    border-color: var(--accent) !important;
+    background-color: rgba(16, 185, 129, 0.05) !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15) !important;
+}
+
+.dropzone-active .upload-icon-container {
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    background-color: rgba(16, 185, 129, 0.08) !important;
+    transform: scale(1.1);
+}
+
+.btn-icon-hover:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Modal Overlay and Modal Card layout containment */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(7, 10, 19, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 

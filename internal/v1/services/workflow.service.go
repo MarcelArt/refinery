@@ -79,6 +79,8 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 		return fmt.Errorf("failed deserialize schema: %w", err)
 	}
 	schemaStr := schemas.ToMarkdownTable()
+
+	// Text below "Source Text" heading are empty because n8n workflow will appends it
 	prompt := fmt.Sprintf(`
 		%s
 

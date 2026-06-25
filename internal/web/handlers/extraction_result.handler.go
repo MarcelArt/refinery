@@ -49,6 +49,8 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		return
 	}
 
+	schemas, _ := workflow.Schemas.Deserialize()
+
 	// Fetch paginated extraction results for the workflow
 	pageInfo, pages := h.extractionResultService.GetByWorkflowID(c, workflow.ID)
 
@@ -108,14 +110,16 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 	}
 
 	renderTemplate(c, http.StatusOK, "extraction_results.html", gin.H{
-		"Title":          "Extraction Results",
-		"User":           user,
-		"WorkflowID":     workflow.ID,
-		"WorkflowTitle":  workflow.Title,
-		"Results":        resultsVM,
-		"SelectedResult": selectedResultVM,
-		"Pagination":     paginationVM,
-		"ActiveMenu":     "workflows", // Highlights workflows menu
+		"Title":           "Extraction Results",
+		"User":            user,
+		"WorkflowID":      workflow.ID,
+		"WorkflowTitle":   workflow.Title,
+		"WorkflowPrompt":  workflow.Prompt,
+		"WorkflowSchemas": schemas,
+		"Results":         resultsVM,
+		"SelectedResult":  selectedResultVM,
+		"Pagination":      paginationVM,
+		"ActiveMenu":      "workflows", // Highlights workflows menu
 	})
 }
 
@@ -162,4 +166,45 @@ func extractUniqueKeys(jsonArray []map[string]any) []string {
 		}
 	}
 	return keys
+}
+
+// Upload processes the file upload to start a new extraction run for the workflow
+func (h *ExtractionResultWebHandler) Upload(c *gin.Context) {
+	_, exists := c.Get("userId")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	workflowIDStr := c.Param("id")
+	formFile, err := c.FormFile("file")
+	if err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Failed uploading file: " + err.Error(),
+		})
+		return
+	}
+
+	file, err := formFile.Open()
+	if err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Failed to open file: " + err.Error(),
+		})
+		return
+	}
+	defer file.Close()
+
+	if err := h.workflowService.UploadToWorkflow(c, workflowIDStr, formFile.Filename, file); err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Failed upload to workflow: " + err.Error(),
+		})
+		return
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Redirect", "/workflows/"+workflowIDStr+"/results")
+		c.Status(http.StatusOK)
+	} else {
+		c.Redirect(http.StatusSeeOther, "/workflows/"+workflowIDStr+"/results")
+	}
 }
