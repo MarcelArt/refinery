@@ -1,5 +1,7 @@
 {{ define "content" }}
-<div x-data="{ showUploadModal: false, selectedFile: null, dragOver: false, uploading: false }" style="width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
+<div x-data="{ showUploadModal: false, selectedFile: null, dragOver: false, uploading: false }" 
+     @workflow-started.window="showUploadModal = false"
+     style="width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
     <style>
         /* Modal Overlay and Modal Card layout containment */
         .modal-overlay {
@@ -60,7 +62,14 @@
         </div>
     </header>
 
-    <div class="results-page-layout" x-data="{ selectedRunId: {{ if .SelectedResult }}{{ .SelectedResult.ID }}{{ else }}null{{ end }} }">
+    <div class="results-page-layout" 
+         x-data="{ selectedRunId: {{ if .SelectedResult }}{{ .SelectedResult.ID }}{{ else }}null{{ end }} }"
+         hx-get="/workflows/{{ .WorkflowID }}/results"
+         hx-select=".results-page-layout"
+         hx-target="this"
+         hx-swap="outerHTML"
+         hx-push-url="true"
+         hx-trigger="workflow-started from:body">
         <!-- Left Inner Sidebar (Runs List) -->
         <aside class="results-sidebar">
             <div style="padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color);">
@@ -74,6 +83,7 @@
                 <li class="result-item" :class="{ 'active': selectedRunId === {{ .ID }} }">
                     <a href="/workflows/{{ $workflowId }}/results/{{ .ID }}"
                        hx-get="/workflows/{{ $workflowId }}/results/details/{{ .ID }}"
+                       hx-select=".result-details-content"
                        hx-target="#result-details"
                        hx-swap="innerHTML"
                        hx-push-url="/workflows/{{ $workflowId }}/results/{{ .ID }}"

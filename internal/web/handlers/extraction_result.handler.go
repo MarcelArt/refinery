@@ -209,7 +209,7 @@ func (h *ExtractionResultWebHandler) Upload(c *gin.Context) {
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
-		c.Header("HX-Redirect", "/workflows/"+workflowIDStr+"/results")
+		c.Header("HX-Trigger", "workflow-started")
 		c.Status(http.StatusOK)
 	} else {
 		c.Redirect(http.StatusSeeOther, "/workflows/"+workflowIDStr+"/results")
