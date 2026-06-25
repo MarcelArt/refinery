@@ -23,16 +23,18 @@ type IWorkflowService interface {
 }
 
 type WorkflowService struct {
-	repo  repositories.IWorkflowRepo
-	nRepo repositories.IN8NRepo
+	repo   repositories.IWorkflowRepo
+	nRepo  repositories.IN8NRepo
+	erRepo repositories.IExtractionResultRepo
 }
 
 var _ IWorkflowService = &WorkflowService{}
 
-func NewWorkflowService(repo repositories.IWorkflowRepo, nRepo repositories.IN8NRepo) *WorkflowService {
+func NewWorkflowService(repo repositories.IWorkflowRepo, nRepo repositories.IN8NRepo, erRepo repositories.IExtractionResultRepo) *WorkflowService {
 	return &WorkflowService{
-		repo:  repo,
-		nRepo: nRepo,
+		repo:   repo,
+		nRepo:  nRepo,
+		erRepo: erRepo,
 	}
 }
 
@@ -80,6 +82,15 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 	}
 	schemaStr := schemas.ToMarkdownTable()
 
+	extraction := models.ExtractionResultInput{
+		Status:     "IN_PROGRESS",
+		WorkflowID: workflow.ID,
+	}
+	erID, err := s.erRepo.Create(c, extraction)
+	if err != nil {
+		return fmt.Errorf("failed starting workflow: %w", err)
+	}
+
 	// Text below "Source Text" heading are empty because n8n workflow will appends it
 	prompt := fmt.Sprintf(`
 		%s
@@ -102,10 +113,11 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 		]
 	`)
 	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
+	writer.WriteField("extractionId", strconv.Itoa(int(erID)))
 
 	contentType := writer.FormDataContentType()
-
 	writer.Close()
+
 	return s.nRepo.PostWebhookForm("48c2f9e5-a3a5-4582-9f47-7792c790d701", &requestBody, contentType)
 }
 

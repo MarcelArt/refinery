@@ -1,5 +1,5 @@
 // Access the first item from both incoming nodes
-const node1Data = $('HTTP Request').first().json.data;
+const node1Data = $('PDF to MD').first().json.data;
 const node2Body = $('Webhook').first().json.body;
 
 // Combine the markdown instruction and the data into one prompt string
@@ -13,7 +13,8 @@ return [
   {
     json: {
       combinedPrompt: combinedPrompt,
-      systemMessage: systemMessage
+      systemMessage: systemMessage,
+      workflowId: node2Body.workflowId,
     }
   }
 ];

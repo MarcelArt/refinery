@@ -161,7 +161,7 @@ func (h *ExtractionResultHandler) GetByID(c *gin.Context) {
 // @Router       /v1/extraction-results/{id}/webhook [post]
 func (h *ExtractionResultHandler) Webhook(c *gin.Context) {
 	id := c.Param("id")
-	workflowID, err := strconv.Atoi(id)
+	extractionID, err := strconv.Atoi(id)
 	if err != nil {
 		_, res := common.ResultErr(err, "invalid workflow id")
 		c.JSON(http.StatusBadRequest, res)
@@ -175,11 +175,10 @@ func (h *ExtractionResultHandler) Webhook(c *gin.Context) {
 		return
 	}
 
-	erID, err := h.service.SaveFromLLM(c, uint(workflowID), input)
-	if err != nil {
+	if err := h.service.SaveFromLLM(c, uint(extractionID), input); err != nil {
 		c.JSON(common.ResultErr(err, "failed saving extraction result"))
 		return
 	}
 
-	c.JSON(http.StatusCreated, common.ResultOk(erID, "Extraction result saved"))
+	c.JSON(http.StatusOK, common.ResultOk[any](nil, "Extraction result saved"))
 }

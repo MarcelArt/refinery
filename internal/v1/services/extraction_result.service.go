@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
@@ -16,7 +17,7 @@ import (
 
 type IExtractionResultService interface {
 	common.IBaseCrudService[entities.ExtractionResult, models.ExtractionResultInput, models.ExtractionResultPage]
-	SaveFromLLM(c context.Context, id uint, input models.ContentLLM) (uint, error)
+	SaveFromLLM(c context.Context, id uint, input models.ContentLLM) error
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
 }
 
@@ -52,23 +53,25 @@ func (s *ExtractionResultService) GetByID(c context.Context, id any) (entities.E
 	return s.repo.GetByID(c, id)
 }
 
-func (s *ExtractionResultService) SaveFromLLM(c context.Context, id uint, input models.ContentLLM) (uint, error) {
+func (s *ExtractionResultService) SaveFromLLM(c context.Context, id uint, input models.ContentLLM) error {
 	var content entities.ExtractionJSON
 	if err := json.Unmarshal([]byte(input.Content), &content); err != nil {
-		return 0, fmt.Errorf("failed to unmarshal json: %w", err)
+		return fmt.Errorf("failed to unmarshal json: %w", err)
 	}
 
 	jsonContent, err := jsonb.New(content)
 	if err != nil {
-		return 0, fmt.Errorf("failed to serialize json: %w", err)
+		return fmt.Errorf("failed to serialize json: %w", err)
 	}
 
 	result := models.ExtractionResultInput{
 		Raw:        input.Content,
 		Json:       jsonContent,
-		WorkflowID: id,
+		Source:     input.Source,
+		Status:     "DONE",
+		FinishedAt: new(time.Now()),
 	}
-	return s.repo.Create(c, result)
+	return s.repo.Update(c, id, result)
 }
 
 func (s *ExtractionResultService) GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage) {
