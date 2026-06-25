@@ -59,6 +59,7 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		resultsVM = append(resultsVM, viewmodels.ExtractionResultRowViewModel{
 			ID:        p.ID,
 			CreatedAt: p.CreatedAt,
+			Status:    p.Status,
 		})
 	}
 
@@ -70,10 +71,12 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		if err == nil && res.WorkflowID == workflow.ID {
 			jsonArray, _ := res.Json.Deserialize()
 			selectedResultVM = &viewmodels.ExtractionResultDetailsViewModel{
-				ID:        res.ID,
-				CreatedAt: res.CreatedAt,
-				Columns:   extractUniqueKeys(jsonArray),
-				Rows:      jsonArray,
+				ID:         res.ID,
+				CreatedAt:  res.CreatedAt,
+				Status:     res.Status,
+				FinishedAt: res.FinishedAt,
+				Columns:    extractUniqueKeys(jsonArray),
+				Rows:       jsonArray,
 			}
 		}
 	} else if len(pages) > 0 {
@@ -81,10 +84,12 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		firstResult := pages[0]
 		jsonArray, _ := firstResult.Json.Deserialize()
 		selectedResultVM = &viewmodels.ExtractionResultDetailsViewModel{
-			ID:        firstResult.ID,
-			CreatedAt: firstResult.CreatedAt,
-			Columns:   extractUniqueKeys(jsonArray),
-			Rows:      jsonArray,
+			ID:         firstResult.ID,
+			CreatedAt:  firstResult.CreatedAt,
+			Status:     firstResult.Status,
+			FinishedAt: firstResult.FinishedAt,
+			Columns:    extractUniqueKeys(jsonArray),
+			Rows:       jsonArray,
 		}
 	}
 
@@ -134,10 +139,12 @@ func (h *ExtractionResultWebHandler) ShowResultDetails(c *gin.Context) {
 
 	jsonArray, _ := res.Json.Deserialize()
 	selectedResultVM := &viewmodels.ExtractionResultDetailsViewModel{
-		ID:        res.ID,
-		CreatedAt: res.CreatedAt,
-		Columns:   extractUniqueKeys(jsonArray),
-		Rows:      jsonArray,
+		ID:         res.ID,
+		CreatedAt:  res.CreatedAt,
+		Status:     res.Status,
+		FinishedAt: res.FinishedAt,
+		Columns:    extractUniqueKeys(jsonArray),
+		Rows:       jsonArray,
 	}
 
 	// Parse extraction_results.html to execute the result_details block directly

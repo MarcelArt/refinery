@@ -78,7 +78,10 @@
                        hx-swap="innerHTML"
                        hx-push-url="/workflows/{{ $workflowId }}/results/{{ .ID }}"
                        @click="selectedRunId = {{ .ID }}">
-                        <span class="result-run-id">Run #{{ .ID }}</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <span class="result-run-id">Run #{{ .ID }}</span>
+                            <span class="status-dot dot-{{ if eq .Status "DONE" }}done{{ else if eq .Status "FAILED" }}failed{{ else }}in-progress{{ end }}" title="Status: {{ if eq .Status "DONE" }}Completed{{ else if eq .Status "FAILED" }}Failed{{ else }}In Progress{{ end }}"></span>
+                        </div>
                         <span class="result-run-date">{{ .CreatedAt.Format "2006-01-02 15:04" }}</span>
                     </a>
                 </li>
@@ -249,13 +252,22 @@
 
 {{ define "result_details" }}
 <div class="result-details-content">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-        <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">
-            Run Details - Run #{{ .ID }}
-        </h2>
-        <span style="font-size: 11px; color: var(--text-secondary);">
-            Executed at: <strong>{{ .CreatedAt.Format "2006-01-02 15:04" }}</strong>
-        </span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">
+                Run Details - Run #{{ .ID }}
+            </h2>
+            <span class="status-badge status-{{ if eq .Status "DONE" }}done{{ else if eq .Status "FAILED" }}failed{{ else }}in-progress{{ end }}">
+                <span class="status-dot dot-{{ if eq .Status "DONE" }}done{{ else if eq .Status "FAILED" }}failed{{ else }}in-progress{{ end }}"></span>
+                {{ if eq .Status "DONE" }}Completed{{ else if eq .Status "FAILED" }}Failed{{ else }}In Progress{{ end }}
+            </span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 11px; color: var(--text-secondary);">
+            <div>Started: <strong>{{ .CreatedAt.Format "2006-01-02 15:04:05" }}</strong></div>
+            {{ if .FinishedAt }}
+            <div>Finished: <strong>{{ .FormattedFinishedAt }}</strong>{{ if .Duration }} (Duration: <strong>{{ .Duration }}</strong>){{ end }}</div>
+            {{ end }}
+        </div>
     </div>
 
     {{ if .Rows }}

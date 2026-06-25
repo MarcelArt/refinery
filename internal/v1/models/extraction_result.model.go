@@ -13,7 +13,7 @@ type ExtractionResultInput struct {
 	Raw        string                               `gorm:"not null" json:"raw"`
 	Json       jsonb.JSONB[entities.ExtractionJSON] `json:"json"`
 	Source     string                               `json:"source"`
-	Status     string                               `gorm:"default:IN_PROGRESS" json:"string"` // IN_PROGRESS, DONE, FAILED
+	Status     string                               `gorm:"default:IN_PROGRESS" json:"status"` // IN_PROGRESS, DONE, FAILED
 	FinishedAt *time.Time                           `json:"finishedAt"`
 	WorkflowID uint                                 `gorm:"not null" json:"workflowId"`
 }
@@ -24,8 +24,8 @@ type ExtractionResultPage struct {
 	Raw        string                               `json:"raw"`
 	Json       jsonb.JSONB[entities.ExtractionJSON] `json:"json"`
 	Source     string                               `json:"source"`
-	Status     string                               `gorm:"default:IN_PROGRESS" json:"string"` // IN_PROGRESS, DONE, FAILED
-	FinishedAt time.Time                            `json:"finishedAt"`
+	Status     string                               `gorm:"default:IN_PROGRESS" json:"status"` // IN_PROGRESS, DONE, FAILED
+	FinishedAt *time.Time                           `json:"finishedAt"`
 	WorkflowID uint                                 `json:"workflowId"`
 }
 
