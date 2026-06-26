@@ -28,4 +28,5 @@ type WorkflowPage struct {
 
 type WorkflowStartOption struct {
 	AdditionalPrompt string
+	Metadata         string
 }

@@ -15,6 +15,7 @@ import (
 type IWebhookRepo interface {
 	common.IBaseCrudRepo[entities.Webhook, models.WebhookInput, models.WebhookPage]
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.WebhookPage)
+	GetAllByWorkflowID(c context.Context, workflowID any) ([]entities.Webhook, error)
 }
 
 type WebhookRepo struct {
@@ -101,4 +102,10 @@ func (r *WebhookRepo) GetByID(c context.Context, id any) (entities.Webhook, erro
 	webhook, err := gorm.G[entities.Webhook](r.db).Where("id = ?", id).First(c)
 
 	return webhook, err
+}
+
+func (r *WebhookRepo) GetAllByWorkflowID(c context.Context, workflowID any) ([]entities.Webhook, error) {
+	webhooks, err := gorm.G[entities.Webhook](r.db).Where("workflow_id = ?", workflowID).Find(c)
+
+	return webhooks, err
 }
