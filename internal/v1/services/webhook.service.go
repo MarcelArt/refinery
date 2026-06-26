@@ -55,7 +55,7 @@ func (s *WebhookService) GetByWorkflowID(c *gin.Context, workflowID any) (pagina
 }
 
 func (s *WebhookService) CreateWithHMAC(c context.Context, input models.WebhookInput) (string, error) {
-	input.HmacKey = common.GenerateSecureKey("")
+	input.HmacKey = common.GenerateSecureKey("whsec_")
 	if _, err := s.repo.Create(c, input); err != nil {
 		return "", fmt.Errorf("failed saving webhook setting: %w", err)
 	}

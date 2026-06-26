@@ -19,9 +19,7 @@ func setupWorkflowRoutes(r *gin.Engine, authM *WebAuthMiddleware, h *handlers.Wo
 	r.GET("/workflows/:id/edit", authM.RequireAuth(), h.ShowUpdateWorkflow)
 	r.POST("/workflows/:id/edit", authM.RequireAuth(), h.HandleUpdateWorkflow)
 	
-	// Workflow events placeholder route
-	r.GET("/workflows/:id/events", authM.RequireAuth(), h.ShowWorkflowEvents)
-	
+
 	// Redirect base workflow ID path to results tab
 	r.GET("/workflows/:id", authM.RequireAuth(), func(c *gin.Context) {
 		c.Redirect(http.StatusSeeOther, "/workflows/"+c.Param("id")+"/results")

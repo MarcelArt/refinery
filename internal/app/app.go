@@ -29,6 +29,7 @@ type App struct {
 	wfWebH    *webhandlers.WorkflowWebHandler
 	erWebH    *webhandlers.ExtractionResultWebHandler
 	akWebH    *webhandlers.ApiKeyWebHandler
+	whWebH    *webhandlers.WebhookWebHandler
 }
 
 func New(
@@ -43,6 +44,7 @@ func New(
 	wfWebH *webhandlers.WorkflowWebHandler,
 	erWebH *webhandlers.ExtractionResultWebHandler,
 	akWebH *webhandlers.ApiKeyWebHandler,
+	whWebH *webhandlers.WebhookWebHandler,
 ) *App {
 	return &App{
 		uHandler:  uHandler,
@@ -56,6 +58,7 @@ func New(
 		wfWebH:    wfWebH,
 		erWebH:    erWebH,
 		akWebH:    akWebH,
+		whWebH:    whWebH,
 	}
 }
 
@@ -79,7 +82,7 @@ func (a *App) Run() error {
 	api := r.Group("/api")
 	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM, a.whHandler)
 
-	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH, a.akWebH)
+	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH, a.akWebH, a.whWebH)
 
 	port := fmt.Sprintf(":%s", configs.Env.PORT)
 	log.Printf("Listening on http://localhost%s", port)

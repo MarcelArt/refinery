@@ -1,0 +1,336 @@
+{{ define "tab_content" }}
+<div x-data="{ 
+    showCreateModal: false, 
+    showEditModal: null,
+    showDeleteConfirm: null,
+    copiedHmac: false
+}" style="width: 100%; padding-bottom: 40px;">
+
+    <!-- Target error indicator for form submission -->
+    <div id="error-alert"></div>
+
+    {{ if .Error }}
+    <div class="form-card" style="background-color: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; color: #ef4444; font-size: 13px;">
+        <strong>Error:</strong> {{ .Error }}
+    </div>
+    {{ end }}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 14px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Webhook Settings</h2>
+        <button type="button" class="btn btn-primary" style="width: auto; padding: 6px 16px; font-size: 12px;"
+                @click="showCreateModal = true">
+            + Add Webhook
+        </button>
+    </div>
+
+    {{ if .Webhooks }}
+    <div class="table-container" style="box-shadow: none; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Display Name</th>
+                    <th style="width: 10%;">Method</th>
+                    <th style="width: 45%;">Endpoint URL</th>
+                    <th style="width: 20%; text-align: right; padding-right: 20px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .Webhooks }}
+                <tr>
+                    <td>
+                        <span class="workflow-name" style="font-weight: 500;">{{ .DisplayName }}</span>
+                    </td>
+                    <td>
+                        {{ if eq .Method "POST" }}
+                        <span class="schema-pill" style="background-color: rgba(16, 185, 129, 0.08); color: #10b981; border-color: rgba(16, 185, 129, 0.15);">POST</span>
+                        {{ else if eq .Method "GET" }}
+                        <span class="schema-pill" style="background-color: rgba(59, 130, 246, 0.08); color: #3b82f6; border-color: rgba(59, 130, 246, 0.15);">GET</span>
+                        {{ else if eq .Method "PUT" }}
+                        <span class="schema-pill" style="background-color: rgba(245, 158, 11, 0.08); color: #f59e0b; border-color: rgba(245, 158, 11, 0.15);">PUT</span>
+                        {{ else }}
+                        <span class="schema-pill" style="background-color: rgba(239, 68, 68, 0.08); color: #ef4444; border-color: rgba(239, 68, 68, 0.15);">{{ .Method }}</span>
+                        {{ end }}
+                    </td>
+                    <td>
+                        <code style="font-family: monospace; font-size: 12px; color: var(--text-secondary); word-break: break-all;">{{ .URL }}</code>
+                    </td>
+                    <td>
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding-right: 8px;">
+                            <!-- Edit Button -->
+                            <button type="button" 
+                                    class="btn" 
+                                    style="width: auto; padding: 6px 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);"
+                                    @click="showEditModal = { id: {{ .ID }}, displayName: '{{ .DisplayName }}', url: '{{ .URL }}', method: '{{ .Method }}' }"
+                                    title="Edit Webhook">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+                                <span>Edit</span>
+                            </button>
+                            
+                            <!-- Delete Button -->
+                            <button type="button" 
+                                    class="btn-logout" 
+                                    style="width: auto; padding: 6px 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"
+                                    @click="showDeleteConfirm = { id: {{ .ID }}, displayName: '{{ .DisplayName }}' }"
+                                    title="Delete Webhook">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+
+        <!-- Pagination Footer -->
+        <div class="table-footer">
+            <div>
+                Showing <strong>{{ .Pagination.Start }}</strong> to <strong>{{ .Pagination.End }}</strong> of <strong>{{ .Pagination.Total }}</strong> Webhooks
+            </div>
+            <div class="pagination-controls">
+                <a href="/workflows/{{ .WorkflowID }}/webhooks?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+                   hx-get="/workflows/{{ .WorkflowID }}/webhooks?page={{ .Pagination.PrevPage }}&size={{ .Pagination.Size }}"
+                   hx-target=".main-wrapper"
+                   hx-select=".main-wrapper"
+                   hx-swap="outerHTML"
+                   hx-push-url="true"
+                   class="pagination-btn {{ if .Pagination.First }}disabled{{ end }}">
+                    Previous
+                </a>
+                <a href="/workflows/{{ .WorkflowID }}/webhooks?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+                   hx-get="/workflows/{{ .WorkflowID }}/webhooks?page={{ .Pagination.NextPage }}&size={{ .Pagination.Size }}"
+                   hx-target=".main-wrapper"
+                   hx-select=".main-wrapper"
+                   hx-swap="outerHTML"
+                   hx-push-url="true"
+                   class="pagination-btn {{ if .Pagination.Last }}disabled{{ end }}">
+                    Next
+                </a>
+            </div>
+        </div>
+    </div>
+    {{ else }}
+    <div class="placeholder-card" style="border: 1px dashed var(--border-color); border-radius: 6px; padding: 40px; text-align: center;">
+        <div class="placeholder-icon" style="margin-bottom: 16px; color: var(--text-muted);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 15V9a4 4 0 0 0-4-4H9"/></svg>
+        </div>
+        <h2 class="placeholder-title" style="font-size: 16px; color: var(--text-primary); margin-bottom: 8px;">No Webhooks Configured</h2>
+        <p class="placeholder-desc" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto;">Deliver real-time extraction results to external services as soon as runs complete.</p>
+        <button type="button" class="btn btn-primary" style="width: auto;"
+                @click="showCreateModal = true">
+            <span>Add Webhook</span>
+        </button>
+    </div>
+    {{ end }}
+
+    <!-- Create Webhook Modal -->
+    <div x-show="showCreateModal" 
+         x-cloak
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @keydown.escape.window="showCreateModal = false">
+        
+        <form hx-post="/workflows/{{ .WorkflowID }}/webhooks"
+              hx-target=".main-wrapper"
+              hx-select=".main-wrapper"
+              hx-swap="outerHTML"
+              @htmx:after-request="showCreateModal = false"
+              class="modal-card"
+              style="max-width: 500px;"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+              x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+              @click.away="showCreateModal = false">
+            
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">Add Webhook</h3>
+                <button type="button" @click="showCreateModal = false" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px;" class="btn-icon-hover">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                    <label for="displayName" class="form-label">Display Name</label>
+                    <input type="text" id="displayName" name="displayName" class="form-input" placeholder="e.g. My Slack Alert Webhook" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="url" class="form-label">Endpoint URL</label>
+                    <input type="url" id="url" name="url" class="form-input" placeholder="https://api.myservice.com/webhooks" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="method" class="form-label">Method</label>
+                    <select id="method" name="method" class="form-input" style="background-color: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; height: 35px; outline: none; cursor: pointer; width: 100%;">
+                        <option value="POST" selected>POST</option>
+                        <option value="GET">GET</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="hmacKey" class="form-label">HMAC Security Key</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="text" id="hmacKey" name="hmacKey" value="{{ .GeneratedHmacKey }}" readonly class="form-input" style="opacity: 0.8; font-family: monospace; font-size: 12px; cursor: not-allowed; flex: 1;">
+                        <button type="button" 
+                                class="btn-back"
+                                style="width: 34px; height: 34px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-dark); display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; flex-shrink: 0;"
+                                @click="navigator.clipboard.writeText('{{ .GeneratedHmacKey }}'); copiedHmac = true; setTimeout(() => copiedHmac = false, 2000)"
+                                title="Copy HMAC key">
+                            <template x-if="!copiedHmac">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                            </template>
+                            <template x-if="copiedHmac">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </template>
+                        </button>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-muted); margin-top: 6px; display: block;">This key is generated and cannot be modified. Use it to sign and verify payloads on your server.</span>
+                </div>
+            </div>
+            
+            <div style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background-color: var(--bg-dark);">
+                <button type="button" class="btn" style="width: auto; background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; padding: 8px 16px;" @click="showCreateModal = false">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" style="width: auto; font-size: 12px; padding: 8px 16px;">
+                    Save Webhook
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Edit Webhook Modal -->
+    <div x-show="showEditModal !== null" 
+         x-cloak
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @keydown.escape.window="showEditModal = null">
+        
+        <form hx-post="/workflows/{{ .WorkflowID }}/webhooks/edit"
+              hx-target=".main-wrapper"
+              hx-select=".main-wrapper"
+              hx-swap="outerHTML"
+              @htmx:after-request="showEditModal = null"
+              class="modal-card"
+              style="max-width: 500px;"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+              x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+              @click.away="showEditModal = null">
+            
+            <input type="hidden" name="webhookId" :value="showEditModal ? showEditModal.id : ''">
+
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">Edit Webhook</h3>
+                <button type="button" @click="showEditModal = null" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px;" class="btn-icon-hover">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                    <label for="edit-displayName" class="form-label">Display Name</label>
+                    <input type="text" id="edit-displayName" name="displayName" :value="showEditModal ? showEditModal.displayName : ''" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-url" class="form-label">Endpoint URL</label>
+                    <input type="url" id="edit-url" name="url" :value="showEditModal ? showEditModal.url : ''" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-method" class="form-label">Method</label>
+                    <select id="edit-method" name="method" class="form-input" style="background-color: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; height: 35px; outline: none; cursor: pointer; width: 100%;">
+                        <option value="POST" :selected="showEditModal && showEditModal.method === 'POST'">POST</option>
+                        <option value="GET" :selected="showEditModal && showEditModal.method === 'GET'">GET</option>
+                        <option value="PUT" :selected="showEditModal && showEditModal.method === 'PUT'">PUT</option>
+                        <option value="DELETE" :selected="showEditModal && showEditModal.method === 'DELETE'">DELETE</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">HMAC Security Key</label>
+                    <input type="text" value="••••••••••••••••••••••••••••••••" disabled class="form-input" style="opacity: 0.6; font-family: monospace; font-size: 12px; cursor: not-allowed; width: 100%;">
+                    <span style="font-size: 11px; color: var(--text-muted); margin-top: 6px; display: block;">For security, the HMAC key cannot be viewed or edited. To generate a new key, please delete and recreate this webhook.</span>
+                </div>
+            </div>
+            
+            <div style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background-color: var(--bg-dark);">
+                <button type="button" class="btn" style="width: auto; background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; padding: 8px 16px;" @click="showEditModal = null">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" style="width: auto; font-size: 12px; padding: 8px 16px;">
+                    Update Webhook
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-show="showDeleteConfirm !== null" 
+         x-cloak
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @keydown.escape.window="showDeleteConfirm = null">
+        
+        <div class="modal-card" style="max-width: 450px;" @click.away="showDeleteConfirm = null">
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0;">Delete Webhook</h3>
+                <button type="button" @click="showDeleteConfirm = null" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px;" class="btn-icon-hover">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                <p style="font-size: 13px; color: var(--text-primary); margin: 0; line-height: 1.5;">
+                    Are you sure you want to permanently delete the webhook <strong x-text="showDeleteConfirm ? showDeleteConfirm.displayName : ''"></strong>?
+                </p>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: 0; line-height: 1.5; background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); padding: 10px; border-radius: 4px;">
+                    <strong>Warning:</strong> This webhook will immediately stop receiving payloads from extraction runs.
+                </p>
+            </div>
+            
+            <div style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background-color: var(--bg-dark);">
+                <button type="button" class="btn" style="width: auto; background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); font-size: 12px; padding: 8px 16px;" @click="showDeleteConfirm = null">
+                    Cancel
+                </button>
+                <form hx-post="/workflows/{{ .WorkflowID }}/webhooks/delete"
+                      hx-target=".main-wrapper"
+                      hx-select=".main-wrapper"
+                      hx-swap="outerHTML"
+                      @htmx:after-request="showDeleteConfirm = null">
+                    <input type="hidden" name="webhookId" :value="showDeleteConfirm ? showDeleteConfirm.id : ''">
+                    <button type="submit" class="btn btn-logout" style="width: auto; font-size: 12px; padding: 8px 16px;">
+                        Delete Webhook
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{{ end }}

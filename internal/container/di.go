@@ -45,6 +45,7 @@ func New() *dig.Container {
 	c.Provide(webhandlers.NewWorkflowWebHandler)
 	c.Provide(webhandlers.NewExtractionResultWebHandler)
 	c.Provide(webhandlers.NewApiKeyWebHandler)
+	c.Provide(webhandlers.NewWebhookWebHandler)
 
 	c.Provide(app.New)
 
