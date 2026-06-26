@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/entities"
@@ -192,6 +193,136 @@ func (h *WorkflowWebHandler) HandleCreateWorkflow(c *gin.Context) {
 	if err != nil {
 		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
 			"Error": "Failed to save workflow: " + err.Error(),
+		})
+		return
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.Header("HX-Redirect", "/workflows")
+		c.Status(http.StatusOK)
+	} else {
+		c.Redirect(http.StatusSeeOther, "/workflows")
+	}
+}
+
+// ShowUpdateWorkflow renders the edit/update workflow page
+func (h *WorkflowWebHandler) ShowUpdateWorkflow(c *gin.Context) {
+	userId, exists := c.Get("userId")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	user, err := h.userService.GetByID(c, userId)
+	if err != nil {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	workflowIDStr := c.Param("id")
+	workflow, err := h.workflowService.GetByID(c, workflowIDStr)
+	if err != nil {
+		c.Redirect(http.StatusSeeOther, "/workflows")
+		return
+	}
+
+	if workflow.UserID != uint(userId.(float64)) {
+		c.Redirect(http.StatusSeeOther, "/workflows")
+		return
+	}
+
+	schemas, _ := workflow.Schemas.Deserialize()
+	
+	// Convert schemas to JSON string for Alpine.js initialization
+	schemasJsonBytes, _ := json.Marshal(schemas)
+	schemasJsonStr := string(schemasJsonBytes)
+
+	renderTemplate(c, http.StatusOK, "update_workflow.html", gin.H{
+		"Title":           "Update Workflow",
+		"User":            user,
+		"Workflow":        workflow,
+		"WorkflowSchemas": schemas,
+		"SchemasJson":     template.JS(schemasJsonStr),
+		"ActiveMenu":      "workflows",
+	})
+}
+
+// HandleUpdateWorkflow processes the edit form submission
+func (h *WorkflowWebHandler) HandleUpdateWorkflow(c *gin.Context) {
+	userId, exists := c.Get("userId")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	workflowIDStr := c.Param("id")
+	workflow, err := h.workflowService.GetByID(c, workflowIDStr)
+	if err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Workflow not found",
+		})
+		return
+	}
+
+	if workflow.UserID != uint(userId.(float64)) {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Unauthorized to update this workflow",
+		})
+		return
+	}
+
+	title := c.PostForm("title")
+	description := c.PostForm("description")
+	prompt := c.PostForm("prompt")
+	schemasJson := c.PostForm("schemasJson")
+	workflowType := c.PostForm("type")
+
+	if title == "" || description == "" {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Title and description are required",
+		})
+		return
+	}
+
+	var schemas []entities.WorkflowSchema
+	if schemasJson != "" {
+		if err := json.Unmarshal([]byte(schemasJson), &schemas); err != nil {
+			renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+				"Error": "Invalid schema format: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	// Filter out any schema entries that have empty keys to avoid saving malformed objects
+	filteredSchemas := make([]entities.WorkflowSchema, 0, len(schemas))
+	for _, s := range schemas {
+		if s.Key != "" {
+			filteredSchemas = append(filteredSchemas, s)
+		}
+	}
+
+	schemasJSONB, err := jsonb.New(filteredSchemas)
+	if err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Failed to create schema representation: " + err.Error(),
+		})
+		return
+	}
+
+	input := models.WorkflowInput{
+		Title:       title,
+		Description: description,
+		Prompt:      prompt,
+		Schemas:     schemasJSONB,
+		Type:        workflowType,
+		UserID:      workflow.UserID, // Maintain original owner ID
+	}
+
+	err = h.workflowService.Update(c, workflow.ID, input)
+	if err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Failed to update workflow: " + err.Error(),
 		})
 		return
 	}
