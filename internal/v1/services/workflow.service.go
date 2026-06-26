@@ -181,7 +181,7 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	contentType := writer.FormDataContentType()
 	writer.Close()
 
-	if err := s.nRepo.PostWebhookForm(enums.WebhookPDFText, &requestBody, contentType); err != nil {
+	if err := s.nRepo.PostWebhookForm(enums.WebhookPicture, &requestBody, contentType); err != nil {
 		return fmt.Errorf("failed uploading to n8n: %w", err)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/MarcelArt/refinery/internal/v1/models"
 	"github.com/MarcelArt/refinery/internal/v1/services"
 	"github.com/MarcelArt/refinery/internal/web/viewmodels"
 	"github.com/gin-gonic/gin"
@@ -196,7 +197,12 @@ func (h *ExtractionResultWebHandler) Upload(c *gin.Context) {
 	}
 	defer file.Close()
 
-	if err := h.workflowService.UploadToWorkflow(c, workflowIDStr, formFile.Filename, file); err != nil {
+	additionalPrompt := c.PostForm("additionalPrompt")
+	workflowOption := models.WorkflowStartOption{
+		AdditionalPrompt: additionalPrompt,
+	}
+
+	if err := h.workflowService.UploadToWorkflow(c, workflowIDStr, formFile.Filename, file, workflowOption); err != nil {
 		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
 			"Error": "Failed upload to workflow: " + err.Error(),
 		})
