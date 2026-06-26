@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -198,8 +199,21 @@ func (h *ExtractionResultWebHandler) Upload(c *gin.Context) {
 	defer file.Close()
 
 	additionalPrompt := c.PostForm("additionalPrompt")
+	metadata := c.PostForm("metadata")
+
+	if metadata != "" {
+		var temp json.RawMessage
+		if err := json.Unmarshal([]byte(metadata), &temp); err != nil {
+			renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+				"Error": "Metadata must be a valid JSON format: " + err.Error(),
+			})
+			return
+		}
+	}
+
 	workflowOption := models.WorkflowStartOption{
 		AdditionalPrompt: additionalPrompt,
+		Metadata:         metadata,
 	}
 
 	if err := h.workflowService.UploadToWorkflow(c, workflowIDStr, formFile.Filename, file, workflowOption); err != nil {
