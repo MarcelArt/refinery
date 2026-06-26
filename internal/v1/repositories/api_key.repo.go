@@ -15,6 +15,7 @@ import (
 type IApiKeyRepo interface {
 	common.IBaseCrudRepo[entities.ApiKey, models.ApiKeyInput, models.ApiKeyPage]
 	GetByKey(c context.Context, key string) (entities.ApiKey, error)
+	GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.ApiKeyPage)
 }
 
 type ApiKeyRepo struct {
@@ -90,4 +91,23 @@ func (r *ApiKeyRepo) GetByKey(c context.Context, key string) (entities.ApiKey, e
 	apiKey, err := gorm.G[entities.ApiKey](r.db).Where("key = ?", key).First(c)
 
 	return apiKey, err
+}
+
+func (r *ApiKeyRepo) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.ApiKeyPage) {
+	apiKeys := make([]models.ApiKeyPage, 0)
+	query := `
+		SELECT 
+			*
+		FROM api_keys ak
+		where ak.deleted_at isnull
+		and ak.user_id = ?
+	`
+
+	stmt := r.db.Raw(query, userID)
+
+	pg := paginate.New()
+
+	page := pg.With(stmt).Request(c.Request).Response(&apiKeys)
+
+	return page, apiKeys
 }

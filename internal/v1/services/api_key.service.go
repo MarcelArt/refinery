@@ -19,6 +19,7 @@ type IApiKeyService interface {
 	Generate(c context.Context, input models.ApiKeyInput) (string, error)
 	Regenerate(c context.Context, id any) (string, error)
 	GetByKey(c context.Context, key string) (entities.ApiKey, error)
+	GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.ApiKeyPage)
 }
 
 type ApiKeyService struct {
@@ -66,8 +67,14 @@ func (s *ApiKeyService) Generate(c context.Context, input models.ApiKeyInput) (s
 }
 
 func (s *ApiKeyService) Regenerate(c context.Context, id any) (string, error) {
+	oldKey, err := s.repo.GetByID(c, id)
+	if err != nil {
+		return "", err
+	}
+
 	input := models.ApiKeyInput{
-		Key: generateSecureKey(),
+		Key:    generateSecureKey(),
+		Scopes: oldKey.Scopes,
 	}
 
 	if err := s.repo.Update(c, id, input); err != nil {
@@ -79,6 +86,10 @@ func (s *ApiKeyService) Regenerate(c context.Context, id any) (string, error) {
 
 func (s *ApiKeyService) GetByKey(c context.Context, key string) (entities.ApiKey, error) {
 	return s.repo.GetByKey(c, key)
+}
+
+func (s *ApiKeyService) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.ApiKeyPage) {
+	return s.repo.GetByUserID(c, userID)
 }
 
 func generateSecureKey() string {
