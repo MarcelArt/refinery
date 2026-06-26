@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/MarcelArt/refinery/internal/common"
@@ -93,9 +91,5 @@ func (s *ApiKeyService) GetByUserID(c *gin.Context, userID any) (paginate.Page, 
 }
 
 func generateSecureKey() string {
-	b := make([]byte, 24)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-	return "rf_pat_" + hex.EncodeToString(b)
+	return common.GenerateSecureKey("rf_pat_")
 }

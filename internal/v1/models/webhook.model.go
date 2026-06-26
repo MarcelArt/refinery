@@ -18,6 +18,5 @@ type WebhookPage struct {
 	DisplayName string `gorm:"not null" json:"displayName"`
 	URL         string `json:"url"`
 	Method      string `json:"method"`
-	HmacKey     string `gorm:"not null" json:"hmacKey"`
 	WorkflowID  uint   `json:"workflowId"`
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
@@ -14,6 +15,7 @@ import (
 type IWebhookService interface {
 	common.IBaseCrudService[entities.Webhook, models.WebhookInput, models.WebhookPage]
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.WebhookPage)
+	CreateWithHMAC(c context.Context, input models.WebhookInput) (string, error)
 }
 
 type WebhookService struct {
@@ -50,4 +52,13 @@ func (s *WebhookService) GetByID(c context.Context, id any) (entities.Webhook, e
 
 func (s *WebhookService) GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.WebhookPage) {
 	return s.repo.GetByWorkflowID(c, workflowID)
+}
+
+func (s *WebhookService) CreateWithHMAC(c context.Context, input models.WebhookInput) (string, error) {
+	input.HmacKey = common.GenerateSecureKey("")
+	if _, err := s.repo.Create(c, input); err != nil {
+		return "", fmt.Errorf("failed saving webhook setting: %w", err)
+	}
+
+	return input.HmacKey, nil
 }
