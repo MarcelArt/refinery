@@ -22,6 +22,7 @@ var AvailablePerms = []string{
 	PermWorkflowsRead,
 	PermWorkflowsUpdate,
 	PermWorkflowsDelete,
+	PermWorkflowsUpload,
 
 	PermExtractionResultsCreate,
 	PermExtractionResultsRead,
