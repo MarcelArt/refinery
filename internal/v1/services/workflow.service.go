@@ -10,6 +10,7 @@ import (
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
+	"github.com/MarcelArt/refinery/internal/enums"
 	"github.com/MarcelArt/refinery/internal/v1/models"
 	"github.com/MarcelArt/refinery/internal/v1/repositories"
 	"github.com/gin-gonic/gin"
@@ -92,33 +93,17 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 	}
 
 	// Text below "Source Text" heading are empty because n8n workflow will appends it
-	prompt := fmt.Sprintf(`
-		%s
-
-		### Extraction Specification
-		%s
-
-		### Source Text
-	`, workflow.Prompt, schemaStr)
+	prompt := fmt.Sprintf(enums.PromptPDFText, workflow.Prompt, schemaStr)
 
 	writer.WriteField("prompt", prompt)
-	writer.WriteField("system", `
-		You are a precise data extraction engine. Analyze the source text and extract all matching entities based on the user's specification table. 
-
-		CRITICAL: Your entire response must be a single JSON Array containing one or more JSON Objects. Even if you only extract a single row or item, it MUST be wrapped inside a JSON Array. Do not use an outer wrapper object.
-
-		Example output structure:
-		[
-			{ "Key1": "Value1", "Key2": "Value2" }
-		]
-	`)
+	writer.WriteField("system", enums.SysPromptPDFText)
 	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
 	writer.WriteField("extractionId", strconv.Itoa(int(erID)))
 
 	contentType := writer.FormDataContentType()
 	writer.Close()
 
-	return s.nRepo.PostWebhookForm("48c2f9e5-a3a5-4582-9f47-7792c790d701", &requestBody, contentType)
+	return s.nRepo.PostWebhookForm(enums.WebhookPDFText, &requestBody, contentType)
 }
 
 func (s *WorkflowService) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage) {
