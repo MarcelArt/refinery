@@ -18,3 +18,6 @@ compose-down:
 
 compose: compose-down
 	@docker compose up -d
+
+secret:
+	openssl rand -base64 32

@@ -14,6 +14,9 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
+// @securityDefinitions.apikey WebhookKey
+// @in header
+// @name X-Webhook-Key
 func main() {
 	cmd.Execute()
 }

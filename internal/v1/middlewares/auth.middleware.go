@@ -78,3 +78,15 @@ func (m *AuthMiddleware) Refresh(c *gin.Context) {
 		c.Next()
 	}
 }
+
+func (m *AuthMiddleware) WebhookAuth(c *gin.Context) {
+	webhookKey := c.GetHeader("X-Webhook-Key")
+	if webhookKey != configs.Env.JwtSecret {
+		_, res := common.ResultErr(errors.New("invalid webhook key"), "")
+		c.JSON(http.StatusUnauthorized, res)
+		c.Abort()
+		return
+	}
+
+	c.Next()
+}

@@ -158,6 +158,7 @@ func (h *ExtractionResultHandler) GetByID(c *gin.Context) {
 // @Success      201    {object}  common.Result[uint]
 // @Failure      400    {object}  common.Result[string]
 // @Failure      500    {object}  common.Result[string]
+// @Security     WebhookKey
 // @Router       /v1/extraction-results/{id}/webhook [post]
 func (h *ExtractionResultHandler) Webhook(c *gin.Context) {
 	id := c.Param("id")

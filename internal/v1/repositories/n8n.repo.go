@@ -27,7 +27,9 @@ func NewN8NRepo() *N8NRepo {
 
 func (r *N8NRepo) PostWebhookForm(path string, body io.Reader, contentType string) error {
 	url := fmt.Sprintf("%s/webhook/%s", r.baseURL, path)
-	_, err := fetch.FormFile[any](r.client, http.MethodPost, url, body, contentType, nil)
+	headers := make(map[string]string)
+	headers["X-Webhook-Key"] = configs.Env.JwtSecret
+	_, err := fetch.FormFile[any](r.client, http.MethodPost, url, body, contentType, headers)
 
 	return err
 }
