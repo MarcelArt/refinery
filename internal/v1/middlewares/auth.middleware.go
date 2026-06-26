@@ -4,8 +4,10 @@ import (
 	"errors"
 	"net/http"
 
+	"git.bangmarcel.art/marcel/arrays"
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/configs"
+	"github.com/MarcelArt/refinery/internal/enums"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -89,4 +91,37 @@ func (m *AuthMiddleware) WebhookAuth(c *gin.Context) {
 	}
 
 	c.Next()
+}
+
+func (m *AuthMiddleware) Authz(permissionKey string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cPerms, ok := c.Get("permissions")
+		if !ok {
+			_, res := common.ResultErr(common.ErrNotStringSlice, "")
+			c.JSON(http.StatusUnauthorized, res)
+			c.Abort()
+			return
+		}
+
+		permissions, err := common.ParseClaimsToStringSlice(cPerms)
+		if err != nil {
+			_, res := common.ResultErr(err, "failed parsing permission claims")
+			c.JSON(http.StatusUnauthorized, res)
+			c.Abort()
+			return
+		}
+
+		permission := arrays.Find(permissions, func(p string) bool {
+			return p == enums.PermFullAccess || p == permissionKey
+		})
+
+		if permission == nil {
+			_, res := common.ResultErr(errors.New("user doesn't have required permission"), "unauthorized")
+			c.JSON(http.StatusForbidden, res)
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
 }
