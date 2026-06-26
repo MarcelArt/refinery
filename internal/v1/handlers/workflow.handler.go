@@ -167,6 +167,7 @@ func (h *WorkflowHandler) GetByID(c *gin.Context) {
 // @Produce      json
 // @Param        id    path      string  true  "Workflow ID"
 // @Param        file  formData  file    true  "File to upload"
+// @Param        file  formData  string    false  "Additional prompt to apply during runtime"
 // @Success      200   {object}  common.Result[any]
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
@@ -175,6 +176,10 @@ func (h *WorkflowHandler) GetByID(c *gin.Context) {
 // @Router       /v1/workflows/{id}/upload [post]
 func (h *WorkflowHandler) Upload(c *gin.Context) {
 	id := c.Param("id")
+	workflowOption := models.WorkflowStartOption{
+		AdditionalPrompt: c.PostForm("additionalPrompt"),
+	}
+
 	formFile, err := c.FormFile("file")
 	if err != nil {
 		_, res := common.ResultErr(err, "failed uploading file")
@@ -188,7 +193,7 @@ func (h *WorkflowHandler) Upload(c *gin.Context) {
 	}
 	defer file.Close()
 
-	if err := h.service.UploadToWorkflow(c, id, formFile.Filename, file); err != nil {
+	if err := h.service.UploadToWorkflow(c, id, formFile.Filename, file, workflowOption); err != nil {
 		c.JSON(common.ResultErr(err, "failed upload to workflow"))
 		return
 	}

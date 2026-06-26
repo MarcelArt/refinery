@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/MarcelArt/refinery/internal/common"
+	"github.com/MarcelArt/refinery/internal/configs"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/enums"
 	"github.com/MarcelArt/refinery/internal/v1/models"
@@ -19,7 +20,7 @@ import (
 
 type IWorkflowService interface {
 	common.IBaseCrudService[entities.Workflow, models.WorkflowInput, models.WorkflowPage]
-	UploadToWorkflow(c context.Context, id any, filename string, file multipart.File) error
+	UploadToWorkflow(c context.Context, id any, filename string, file multipart.File, workflowOption models.WorkflowStartOption) error
 	GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage)
 }
 
@@ -59,7 +60,7 @@ func (s *WorkflowService) GetByID(c context.Context, id any) (entities.Workflow,
 	return s.repo.GetByID(c, id)
 }
 
-func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename string, file multipart.File) error {
+func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename string, file multipart.File, workflowOption models.WorkflowStartOption) error {
 	workflow, err := s.GetByID(c, id)
 	if err != nil {
 		return err
@@ -67,9 +68,9 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 
 	switch workflow.Type {
 	case enums.WorkflowPDFText:
-		return s.handlePDFText(c, workflow, filename, file)
+		return s.handlePDFText(c, workflow, filename, file, workflowOption)
 	case enums.WorkflowPicture:
-		return s.handlePicture(c, workflow, filename, file)
+		return s.handlePicture(c, workflow, filename, file, workflowOption)
 	default:
 		return enums.ErrUnknownWorkflowType
 	}
@@ -80,7 +81,7 @@ func (s *WorkflowService) GetByUserID(c *gin.Context, userID any) (paginate.Page
 	return s.repo.GetByUserID(c, userID)
 }
 
-func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Workflow, filename string, file multipart.File) error {
+func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Workflow, filename string, file multipart.File, workflowOption models.WorkflowStartOption) error {
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
@@ -99,17 +100,24 @@ func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Wor
 	}
 	schemaStr := schemas.ToMarkdownTable()
 
+	tx := configs.DB.Begin()
+	defer tx.Rollback()
+	erRepo := repositories.NewExtractionResultRepo(tx)
+
 	extraction := models.ExtractionResultInput{
 		Status:     "IN_PROGRESS",
 		WorkflowID: workflow.ID,
 	}
-	erID, err := s.erRepo.Create(c, extraction)
+	erID, err := erRepo.Create(c, extraction)
 	if err != nil {
 		return fmt.Errorf("failed starting workflow: %w", err)
 	}
 
-	// Text below "Source Text" heading are empty because n8n workflow will appends it
-	prompt := fmt.Sprintf(enums.PromptPDFText, workflow.Prompt, schemaStr)
+	promptTmpl := fmt.Sprintf(enums.PromptPDFText, workflow.Prompt, schemaStr)
+	prompt, err := common.TextTemplating(promptTmpl, workflowOption)
+	if err != nil {
+		return fmt.Errorf("text templating error: %w", err)
+	}
 
 	writer.WriteField("prompt", prompt)
 	writer.WriteField("system", enums.SysPromptPDFText)
@@ -119,10 +127,14 @@ func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Wor
 	contentType := writer.FormDataContentType()
 	writer.Close()
 
-	return s.nRepo.PostWebhookForm(enums.WebhookPDFText, &requestBody, contentType)
+	if err := s.nRepo.PostWebhookForm(enums.WebhookPDFText, &requestBody, contentType); err != nil {
+		return fmt.Errorf("failed uploading to n8n: %w", err)
+	}
+
+	return tx.Commit().Error
 }
 
-func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Workflow, filename string, file multipart.File) error {
+func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Workflow, filename string, file multipart.File, workflowOption models.WorkflowStartOption) error {
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
@@ -142,17 +154,24 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	schemaStr := schemas.ToMarkdownTable()
 	jsonExample := schemas.ToJSONExample()
 
+	tx := configs.DB.Begin()
+	defer tx.Rollback()
+	erRepo := repositories.NewExtractionResultRepo(tx)
+
 	extraction := models.ExtractionResultInput{
 		Status:     "IN_PROGRESS",
 		WorkflowID: workflow.ID,
 	}
-	erID, err := s.erRepo.Create(c, extraction)
+	erID, err := erRepo.Create(c, extraction)
 	if err != nil {
 		return fmt.Errorf("failed starting workflow: %w", err)
 	}
 
-	// Text below "Source Text" heading are empty because n8n workflow will appends it
-	prompt := fmt.Sprintf(enums.PromptPicture, workflow.Prompt, schemaStr, jsonExample)
+	promptTmpl := fmt.Sprintf(enums.PromptPicture, workflow.Prompt, schemaStr, jsonExample)
+	prompt, err := common.TextTemplating(promptTmpl, workflowOption)
+	if err != nil {
+		return fmt.Errorf("text templating error: %w", err)
+	}
 
 	writer.WriteField("prompt", prompt)
 	writer.WriteField("system", enums.SysPromptPicture)
@@ -162,5 +181,9 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	contentType := writer.FormDataContentType()
 	writer.Close()
 
-	return s.nRepo.PostWebhookForm(enums.WebhookPicture, &requestBody, contentType)
+	if err := s.nRepo.PostWebhookForm(enums.WebhookPDFText, &requestBody, contentType); err != nil {
+		return fmt.Errorf("failed uploading to n8n: %w", err)
+	}
+
+	return tx.Commit().Error
 }

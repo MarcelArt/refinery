@@ -25,3 +25,7 @@ type WorkflowPage struct {
 	Schemas     jsonb.JSONB[[]entities.WorkflowSchema] `json:"schemas"`
 	Type        string                                 `gorm:"default:PDF_TEXT" json:"type"` // PDF_TEXT, PICTURE
 }
+
+type WorkflowStartOption struct {
+	AdditionalPrompt string
+}
