@@ -21,23 +21,27 @@ func New() *dig.Container {
 	c.Provide(repositories.NewUserRepo, dig.As(new(repositories.IUserRepo)))
 	c.Provide(repositories.NewWorkflowRepo, dig.As(new(repositories.IWorkflowRepo)))
 	c.Provide(repositories.NewExtractionResultRepo, dig.As(new(repositories.IExtractionResultRepo)))
+	c.Provide(repositories.NewApiKeyRepo, dig.As(new(repositories.IApiKeyRepo)))
 
 	c.Provide(services.NewN8NService, dig.As(new(services.IN8NService)))
 	c.Provide(services.NewUserService, dig.As(new(services.IUserService)))
 	c.Provide(services.NewWorkflowService, dig.As(new(services.IWorkflowService)))
 	c.Provide(services.NewExtractionResultService, dig.As(new(services.IExtractionResultService)))
+	c.Provide(services.NewApiKeyService, dig.As(new(services.IApiKeyService)))
 
 	c.Provide(middlewares.NewAuthMiddleware)
 
 	c.Provide(handlers.NewUserHandler)
 	c.Provide(handlers.NewWorkflowHandler)
 	c.Provide(handlers.NewExtractionResultHandler)
+	c.Provide(handlers.NewApiKeyHandler)
 
 	// Web components
 	c.Provide(webroutes.NewWebAuthMiddleware)
 	c.Provide(webhandlers.NewAuthWebHandler)
 	c.Provide(webhandlers.NewWorkflowWebHandler)
 	c.Provide(webhandlers.NewExtractionResultWebHandler)
+	c.Provide(webhandlers.NewApiKeyWebHandler)
 
 	c.Provide(app.New)
 

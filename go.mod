@@ -36,6 +36,7 @@ require (
 )
 
 require (
+	git.bangmarcel.art/marcel/arrays v0.0.0-20260527092234-8686f57230cd
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect

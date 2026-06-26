@@ -7,6 +7,7 @@ import (
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
+	"github.com/MarcelArt/refinery/internal/enums"
 	"github.com/MarcelArt/refinery/internal/v1/models"
 	"github.com/MarcelArt/refinery/internal/v1/repositories"
 	"github.com/alexedwards/argon2id"
@@ -143,7 +144,9 @@ func (s *UserService) GenerateTokenPair(user entities.User, isRemember bool, iss
 	// 	return res, fmt.Errorf("failed retrieving permissions: %w", err)
 	// }
 
-	at, rt, err := common.GenerateJWTPair(claims, nil, isRemember)
+	permissions := []string{enums.PermFullAccess}
+
+	at, rt, err := common.GenerateJWTPair(claims, permissions, isRemember)
 	if err != nil {
 		return res, fmt.Errorf("failed generating token pair: %w", err)
 	}
