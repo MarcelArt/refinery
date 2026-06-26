@@ -60,6 +60,27 @@ func (s *WorkflowService) GetByID(c context.Context, id any) (entities.Workflow,
 }
 
 func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename string, file multipart.File) error {
+	workflow, err := s.GetByID(c, id)
+	if err != nil {
+		return err
+	}
+
+	switch workflow.Type {
+	case enums.WorkflowPDFText:
+		return s.handlePDFText(c, workflow, filename, file)
+	case enums.PromptPicture:
+		return s.handlePicture(c, workflow, filename, file)
+	default:
+		return enums.ErrUnknownWorkflowType
+	}
+
+}
+
+func (s *WorkflowService) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage) {
+	return s.repo.GetByUserID(c, userID)
+}
+
+func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Workflow, filename string, file multipart.File) error {
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
@@ -70,11 +91,6 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 
 	if _, err := io.Copy(part, file); err != nil {
 		return fmt.Errorf("failed copying file: %w", err)
-	}
-
-	workflow, err := s.GetByID(c, id)
-	if err != nil {
-		return err
 	}
 
 	schemas, err := workflow.Schemas.Deserialize()
@@ -106,6 +122,45 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 	return s.nRepo.PostWebhookForm(enums.WebhookPDFText, &requestBody, contentType)
 }
 
-func (s *WorkflowService) GetByUserID(c *gin.Context, userID any) (paginate.Page, []models.WorkflowPage) {
-	return s.repo.GetByUserID(c, userID)
+func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Workflow, filename string, file multipart.File) error {
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	part, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		return fmt.Errorf("failed creating form file: %w", err)
+	}
+
+	if _, err := io.Copy(part, file); err != nil {
+		return fmt.Errorf("failed copying file: %w", err)
+	}
+
+	schemas, err := workflow.Schemas.Deserialize()
+	if err != nil {
+		return fmt.Errorf("failed deserialize schema: %w", err)
+	}
+	schemaStr := schemas.ToMarkdownTable()
+	jsonExample := schemas.ToJSONExample()
+
+	extraction := models.ExtractionResultInput{
+		Status:     "IN_PROGRESS",
+		WorkflowID: workflow.ID,
+	}
+	erID, err := s.erRepo.Create(c, extraction)
+	if err != nil {
+		return fmt.Errorf("failed starting workflow: %w", err)
+	}
+
+	// Text below "Source Text" heading are empty because n8n workflow will appends it
+	prompt := fmt.Sprintf(enums.PromptPicture, workflow.Prompt, schemaStr, jsonExample)
+
+	writer.WriteField("prompt", prompt)
+	writer.WriteField("system", enums.SysPromptPDFText)
+	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
+	writer.WriteField("extractionId", strconv.Itoa(int(erID)))
+
+	contentType := writer.FormDataContentType()
+	writer.Close()
+
+	return s.nRepo.PostWebhookForm(enums.WebhookPicture, &requestBody, contentType)
 }

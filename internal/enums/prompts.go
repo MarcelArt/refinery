@@ -19,7 +19,7 @@ Example output structure:
 ]
 `
 
-const PromptPicture = `You are an expert AI nutritionist and food calorie estimator. Your task is to analyze the provided image of food, along with any optional text tags provided by the user, and return a precise breakdown of the components and estimated calories.
+const PromptPicture = `%s
 
 ### Extraction Specification
 %s

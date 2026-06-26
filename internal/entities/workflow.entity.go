@@ -14,6 +14,7 @@ type Workflow struct {
 	Description string                       `gorm:"not null" json:"description"`
 	Prompt      string                       `json:"prompt"`
 	Schemas     jsonb.JSONB[workflowSchemas] `json:"schemas"`
+	Type        string                       `gorm:"default:PDF_TEXT" json:"type"` // PDF_TEXT, PICTURE
 
 	UserID uint `json:"userId"`
 
@@ -37,4 +38,25 @@ func (e workflowSchemas) ToMarkdownTable() string {
 	}
 
 	return schemaStr.String()
+}
+
+func (e workflowSchemas) ToJSONExample() string {
+	var jsonExample strings.Builder
+	jsonExample.WriteString("[{\n")
+	count := len(e)
+	for i, schema := range e {
+		switch schema.Type {
+		case "boolean", "number":
+			fmt.Fprintf(&jsonExample, `\t"%s": %s`, schema.Key, schema.Example)
+		default:
+			fmt.Fprintf(&jsonExample, `\t"%s": "%s"`, schema.Key, schema.Example)
+		}
+
+		if i < count-1 {
+			fmt.Fprintf(&jsonExample, ",\n")
+		}
+	}
+	jsonExample.WriteString("\n}]")
+
+	return jsonExample.String()
 }

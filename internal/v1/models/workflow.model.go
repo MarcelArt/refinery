@@ -12,6 +12,7 @@ type WorkflowInput struct {
 	Description string                                 `gorm:"not null" json:"description"`
 	Prompt      string                                 `json:"prompt"`
 	Schemas     jsonb.JSONB[[]entities.WorkflowSchema] `json:"schemas"`
+	Type        string                                 `gorm:"default:PDF_TEXT" json:"type"` // PDF_TEXT, PICTURE
 
 	UserID uint `json:"userId"`
 }
@@ -22,4 +23,5 @@ type WorkflowPage struct {
 	Description string                                 `json:"description"`
 	Prompt      string                                 `json:"prompt"`
 	Schemas     jsonb.JSONB[[]entities.WorkflowSchema] `json:"schemas"`
+	Type        string                                 `gorm:"default:PDF_TEXT" json:"type"` // PDF_TEXT, PICTURE
 }
