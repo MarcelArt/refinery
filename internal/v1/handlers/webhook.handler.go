@@ -42,7 +42,7 @@ func (h *WebhookHandler) Create(c *gin.Context) {
 		return
 	}
 
-	id, err := h.service.Create(c, webhook)
+	id, err := h.service.CreateWithHMAC(c, webhook)
 	if err != nil {
 		c.JSON(common.ResultErr(err, "failed creating webhook"))
 		return
