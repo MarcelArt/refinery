@@ -77,6 +77,7 @@ func (h *WorkflowWebHandler) ShowWorkflows(c *gin.Context) {
 			Description: p.Description,
 			Prompt:      p.Prompt,
 			Schemas:     schemas,
+			Type:        p.Type,
 		})
 	}
 
@@ -143,6 +144,7 @@ func (h *WorkflowWebHandler) HandleCreateWorkflow(c *gin.Context) {
 	description := c.PostForm("description")
 	prompt := c.PostForm("prompt")
 	schemasJson := c.PostForm("schemasJson")
+	workflowType := c.PostForm("type")
 
 	if title == "" || description == "" {
 		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
@@ -182,6 +184,7 @@ func (h *WorkflowWebHandler) HandleCreateWorkflow(c *gin.Context) {
 		Description: description,
 		Prompt:      prompt,
 		Schemas:     schemasJSONB,
+		Type:        workflowType,
 		UserID:      uint(userId.(float64)),
 	}
 

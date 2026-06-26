@@ -23,6 +23,7 @@ type WorkflowRowViewModel struct {
 	Description string
 	Prompt      string
 	Schemas     []entities.WorkflowSchema
+	Type        string
 }
 
 type WorkflowPageViewModel struct {

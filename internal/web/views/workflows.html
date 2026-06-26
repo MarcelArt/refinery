@@ -18,10 +18,11 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>Workflow Info</th>
-                <th>Extraction Prompt</th>
-                <th>Target Schema Fields</th>
-                <th style="width: 120px;">Actions</th>
+                <th style="width: 25%;">Workflow Info</th>
+                <th style="width: 12%;">Type</th>
+                <th style="width: 33%;">Extraction Prompt</th>
+                <th style="width: 20%;">Target Schema Fields</th>
+                <th style="width: 10%;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -32,6 +33,13 @@
                         <span class="workflow-name">{{ .Title }}</span>
                         <span class="workflow-desc">{{ .Description }}</span>
                     </div>
+                </td>
+                <td>
+                    {{ if eq .Type "PICTURE" }}
+                    <span class="schema-pill" style="background-color: rgba(168, 85, 247, 0.08); color: #c084fc; border-color: rgba(168, 85, 247, 0.15);">Picture</span>
+                    {{ else }}
+                    <span class="schema-pill" style="background-color: rgba(59, 130, 246, 0.08); color: #60a5fa; border-color: rgba(59, 130, 246, 0.15);">PDF Text</span>
+                    {{ end }}
                 </td>
                 <td>
                     {{ if .Prompt }}

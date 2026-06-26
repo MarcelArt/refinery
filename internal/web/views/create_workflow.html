@@ -51,6 +51,14 @@
                     <input type="text" id="description" name="description" class="form-input" placeholder="e.g. Extract key financial figures from invoice PDFs" required>
                 </div>
 
+                <div class="form-group">
+                    <label for="type" class="form-label">Workflow Type</label>
+                    <select id="type" name="type" class="form-input" style="background-color: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; height: 35px; outline: none; cursor: pointer;">
+                        <option value="PDF_TEXT">PDF Text (Standard PDF)</option>
+                        <option value="PICTURE">Picture (Image scanning)</option>
+                    </select>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="prompt" class="form-label">AI Extraction Prompt (Prefilled Example)</label>
                     <textarea id="prompt" name="prompt" class="form-input" style="height: 100px; resize: vertical; font-family: var(--font-sans);" required>Extract key details from the input document such as total amount, invoice number, vendor name, and date.</textarea>
