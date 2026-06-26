@@ -95,7 +95,25 @@
                         <div class="breadcrumb">
                             <span class="breadcrumb-item">Refinery</span>
                             <span class="breadcrumb-separator">/</span>
-                            <span class="breadcrumb-item active">{{ .Title }}</span>
+                            {{ if .WorkflowID }}
+                                <span class="breadcrumb-item">
+                                    <a href="/workflows"
+                                       hx-get="/workflows"
+                                       hx-target=".main-wrapper"
+                                       hx-select=".main-wrapper"
+                                       hx-swap="outerHTML"
+                                       hx-push-url="true"
+                                       style="color: var(--text-secondary); text-decoration: none; transition: var(--transition-smooth);"
+                                       onmouseover="this.style.color='var(--accent)'"
+                                       onmouseout="this.style.color='var(--text-secondary)'">
+                                        Workflows
+                                    </a>
+                                </span>
+                                <span class="breadcrumb-separator">/</span>
+                                <span class="breadcrumb-item active">{{ .WorkflowTitle }}</span>
+                            {{ else }}
+                                <span class="breadcrumb-item active">{{ .Title }}</span>
+                            {{ end }}
                         </div>
                     </div>
                     <div class="top-bar-right"></div>
