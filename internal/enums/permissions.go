@@ -13,6 +13,11 @@ const (
 	PermExtractionResultsRead   = "extractionResults#read"
 	PermExtractionResultsUpdate = "extractionResults#update"
 	PermExtractionResultsDelete = "extractionResults#delete"
+
+	PermApiKeysCreate = "apiKeys#create"
+	PermApiKeysRead   = "apiKeys#read"
+	PermApiKeysUpdate = "apiKeys#update"
+	PermApiKeysDelete = "apiKeys#delete"
 )
 
 var AvailablePerms = []string{
@@ -28,4 +33,9 @@ var AvailablePerms = []string{
 	PermExtractionResultsRead,
 	PermExtractionResultsUpdate,
 	PermExtractionResultsDelete,
+
+	PermApiKeysCreate,
+	PermApiKeysRead,
+	PermApiKeysUpdate,
+	PermApiKeysDelete,
 }

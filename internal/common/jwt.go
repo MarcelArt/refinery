@@ -73,9 +73,16 @@ func ParseToken(tokenStr string) (jwt.MapClaims, error) {
 }
 
 func ParseClaimsToStringSlice(v any) ([]string, error) {
+	itemsStr, ok := v.([]string)
+	if ok {
+		return itemsStr, nil
+	}
+
 	items, ok := v.([]any)
 	if !ok {
-		return nil, ErrNotStringSlice
+		if !ok {
+			return nil, ErrNotStringSlice
+		}
 	}
 
 	result := make([]string, 0, len(items))

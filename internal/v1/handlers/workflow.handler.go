@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/common"
@@ -34,7 +33,8 @@ func NewWorkflowHandler(service services.IWorkflowService, nService services.IN8
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
 // @Failure      500   {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/workflows [post]
 func (h *WorkflowHandler) Create(c *gin.Context) {
 	userID, err := common.MustGet[float64](c, "userId")
@@ -43,7 +43,6 @@ func (h *WorkflowHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, res)
 		return
 	}
-	log.Println("userID :>> ", userID)
 
 	var workflow models.WorkflowInput
 	if err := c.ShouldBindJSON(&workflow); err != nil {
@@ -52,7 +51,6 @@ func (h *WorkflowHandler) Create(c *gin.Context) {
 		return
 	}
 	workflow.UserID = uint(userID)
-	log.Println("workflow :>> ", workflow)
 
 	id, err := h.service.Create(c, workflow)
 	if err != nil {
@@ -76,7 +74,8 @@ func (h *WorkflowHandler) Create(c *gin.Context) {
 // @Success      200      {object}  paginate.Page{items=[]models.WorkflowPage}
 // @Failure      401      {object}  common.Result[string]
 // @Failure      500      {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/workflows [get]
 func (h *WorkflowHandler) Read(c *gin.Context) {
 	workflows, _ := h.service.Read(c)
@@ -96,7 +95,8 @@ func (h *WorkflowHandler) Read(c *gin.Context) {
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
 // @Failure      500   {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/workflows/{id} [put]
 func (h *WorkflowHandler) Update(c *gin.Context) {
 	id := c.Param("id")
@@ -126,7 +126,8 @@ func (h *WorkflowHandler) Update(c *gin.Context) {
 // @Success      200  {object}  common.Result[any]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/workflows/{id} [delete]
 func (h *WorkflowHandler) Delete(c *gin.Context) {
 	if err := h.service.Delete(c, c.Param("id")); err != nil {
@@ -147,7 +148,8 @@ func (h *WorkflowHandler) Delete(c *gin.Context) {
 // @Success      200  {object}  common.Result[entities.Workflow]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/workflows/{id} [get]
 func (h *WorkflowHandler) GetByID(c *gin.Context) {
 	workflow, err := h.service.GetByID(c, c.Param("id"))
@@ -172,7 +174,8 @@ func (h *WorkflowHandler) GetByID(c *gin.Context) {
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
 // @Failure      500   {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/workflows/{id}/upload [post]
 func (h *WorkflowHandler) Upload(c *gin.Context) {
 	id := c.Param("id")

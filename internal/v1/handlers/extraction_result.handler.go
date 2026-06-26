@@ -32,7 +32,8 @@ func NewExtractionResultHandler(service services.IExtractionResultService) *Extr
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
 // @Failure      500   {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/extraction-results [post]
 func (h *ExtractionResultHandler) Create(c *gin.Context) {
 	var extractionResult models.ExtractionResultInput
@@ -64,7 +65,8 @@ func (h *ExtractionResultHandler) Create(c *gin.Context) {
 // @Success      200      {object}  paginate.Page{items=[]models.ExtractionResultPage}
 // @Failure      401      {object}  common.Result[string]
 // @Failure      500      {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/extraction-results [get]
 func (h *ExtractionResultHandler) Read(c *gin.Context) {
 	extractionResults, _ := h.service.Read(c)
@@ -84,7 +86,8 @@ func (h *ExtractionResultHandler) Read(c *gin.Context) {
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
 // @Failure      500   {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/extraction-results/{id} [put]
 func (h *ExtractionResultHandler) Update(c *gin.Context) {
 	id := c.Param("id")
@@ -114,7 +117,8 @@ func (h *ExtractionResultHandler) Update(c *gin.Context) {
 // @Success      200  {object}  common.Result[any]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/extraction-results/{id} [delete]
 func (h *ExtractionResultHandler) Delete(c *gin.Context) {
 	if err := h.service.Delete(c, c.Param("id")); err != nil {
@@ -135,7 +139,8 @@ func (h *ExtractionResultHandler) Delete(c *gin.Context) {
 // @Success      200  {object}  common.Result[entities.ExtractionResult]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/extraction-results/{id} [get]
 func (h *ExtractionResultHandler) GetByID(c *gin.Context) {
 	extractionResult, err := h.service.GetByID(c, c.Param("id"))

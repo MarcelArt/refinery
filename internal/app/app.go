@@ -7,6 +7,7 @@ import (
 
 	"github.com/MarcelArt/refinery/internal/configs"
 	"github.com/MarcelArt/refinery/internal/v1/handlers"
+	"github.com/MarcelArt/refinery/internal/v1/middlewares"
 	"github.com/MarcelArt/refinery/internal/v1/routes"
 	webhandlers "github.com/MarcelArt/refinery/internal/web/handlers"
 	webroutes "github.com/MarcelArt/refinery/internal/web/routes"
@@ -17,32 +18,38 @@ import (
 )
 
 type App struct {
-	uHandler   *handlers.UserHandler
-	wHandler   *handlers.WorkflowHandler
-	erHandler  *handlers.ExtractionResultHandler
-	authM      *webroutes.WebAuthMiddleware
-	authWebH   *webhandlers.AuthWebHandler
-	wfWebH     *webhandlers.WorkflowWebHandler
-	erWebH     *webhandlers.ExtractionResultWebHandler
+	uHandler  *handlers.UserHandler
+	wHandler  *handlers.WorkflowHandler
+	erHandler *handlers.ExtractionResultHandler
+	akHandler *handlers.ApiKeyHandler
+	authM     *middlewares.AuthMiddleware
+	webAuthM  *webroutes.WebAuthMiddleware
+	authWebH  *webhandlers.AuthWebHandler
+	wfWebH    *webhandlers.WorkflowWebHandler
+	erWebH    *webhandlers.ExtractionResultWebHandler
 }
 
 func New(
 	uHandler *handlers.UserHandler,
 	wHandler *handlers.WorkflowHandler,
 	erHandler *handlers.ExtractionResultHandler,
-	authM *webroutes.WebAuthMiddleware,
+	akHandler *handlers.ApiKeyHandler,
+	authM *middlewares.AuthMiddleware,
+	webAuthM *webroutes.WebAuthMiddleware,
 	authWebH *webhandlers.AuthWebHandler,
 	wfWebH *webhandlers.WorkflowWebHandler,
 	erWebH *webhandlers.ExtractionResultWebHandler,
 ) *App {
 	return &App{
-		uHandler:   uHandler,
-		wHandler:   wHandler,
-		erHandler:  erHandler,
-		authM:      authM,
-		authWebH:   authWebH,
-		wfWebH:     wfWebH,
-		erWebH:     erWebH,
+		uHandler:  uHandler,
+		wHandler:  wHandler,
+		erHandler: erHandler,
+		akHandler: akHandler,
+		authM:     authM,
+		webAuthM:  webAuthM,
+		authWebH:  authWebH,
+		wfWebH:    wfWebH,
+		erWebH:    erWebH,
 	}
 }
 
@@ -64,9 +71,9 @@ func (a *App) Run() error {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	api := r.Group("/api")
-	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler)
+	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM)
 
-	webroutes.SetupWebRoutes(r, a.authM, a.authWebH, a.wfWebH, a.erWebH)
+	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH)
 
 	port := fmt.Sprintf(":%s", configs.Env.PORT)
 	log.Printf("Listening on http://localhost%s", port)

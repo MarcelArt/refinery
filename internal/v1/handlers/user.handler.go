@@ -65,7 +65,8 @@ func (h *UserHandler) Create(c *gin.Context) {
 // @Success      200      {object}  paginate.Page{items=[]models.UserPage}
 // @Failure      401      {object}  common.Result[string]
 // @Failure      500      {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users [get]
 func (h *UserHandler) Read(c *gin.Context) {
 	users, _ := h.service.Read(c)
@@ -85,7 +86,8 @@ func (h *UserHandler) Read(c *gin.Context) {
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
 // @Failure      500   {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users/{id} [put]
 func (h *UserHandler) Update(c *gin.Context) {
 	id := c.Param("id")
@@ -115,7 +117,8 @@ func (h *UserHandler) Update(c *gin.Context) {
 // @Success      200  {object}  common.Result[any]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users/{id} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	if err := h.service.Delete(c, c.Param("id")); err != nil {
@@ -136,7 +139,8 @@ func (h *UserHandler) Delete(c *gin.Context) {
 // @Success      200  {object}  common.Result[entities.User]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	user, err := h.service.GetByID(c, c.Param("id"))
@@ -217,7 +221,8 @@ func (h *UserHandler) Refresh(c *gin.Context) {
 // @Success      200  {object}  common.Result[entities.User]
 // @Failure      401  {object}  common.Result[string]
 // @Failure      500  {object}  common.Result[string]
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users/current [get]
 func (h *UserHandler) GetCurrent(c *gin.Context) {
 	id, err := common.MustGet[float64](c, "userId")
@@ -248,7 +253,8 @@ func (h *UserHandler) GetCurrent(c *gin.Context) {
 // @Failure      400      {object}  common.JSONResponse
 // @Failure      401      {object}  common.JSONResponse
 // @Failure      500      {object}  common.JSONResponse
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users/{id}/roles [patch]
 // func (h *UserHandler) AssignRoles(c *gin.Context) error {
 // 	id := http.Params[uint](c, "id")
@@ -273,7 +279,8 @@ func (h *UserHandler) GetCurrent(c *gin.Context) {
 // @Success      200  {object}  common.JSONResponse{items=[]string}
 // @Failure      401  {object}  common.JSONResponse
 // @Failure      500  {object}  common.JSONResponse
-// @Security     ApiKeyAuth
+// @Security     BearerAuth
+// @Security     ApiKey
 // @Router       /v1/users/permissions [get]
 // func (h *UserHandler) GetPermissions(c *gin.Context) error {
 // 	claims := common.FiberCtxToClaims(c)
