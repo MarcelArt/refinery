@@ -22,6 +22,7 @@ type App struct {
 	wHandler  *handlers.WorkflowHandler
 	erHandler *handlers.ExtractionResultHandler
 	akHandler *handlers.ApiKeyHandler
+	whHandler *handlers.WebhookHandler
 	authM     *middlewares.AuthMiddleware
 	webAuthM  *webroutes.WebAuthMiddleware
 	authWebH  *webhandlers.AuthWebHandler
@@ -35,6 +36,7 @@ func New(
 	wHandler *handlers.WorkflowHandler,
 	erHandler *handlers.ExtractionResultHandler,
 	akHandler *handlers.ApiKeyHandler,
+	whHandler *handlers.WebhookHandler,
 	authM *middlewares.AuthMiddleware,
 	webAuthM *webroutes.WebAuthMiddleware,
 	authWebH *webhandlers.AuthWebHandler,
@@ -47,6 +49,7 @@ func New(
 		wHandler:  wHandler,
 		erHandler: erHandler,
 		akHandler: akHandler,
+		whHandler: whHandler,
 		authM:     authM,
 		webAuthM:  webAuthM,
 		authWebH:  authWebH,
@@ -74,7 +77,7 @@ func (a *App) Run() error {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	api := r.Group("/api")
-	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM)
+	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM, a.whHandler)
 
 	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH, a.akWebH)
 

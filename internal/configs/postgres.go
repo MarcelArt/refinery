@@ -48,6 +48,7 @@ func MigrateDB() error {
 		entities.Workflow{},
 		entities.ExtractionResult{},
 		entities.ApiKey{},
+		entities.Webhook{},
 	// entities.Role{},
 	// entities.UserRole{},
 	)
@@ -64,6 +65,7 @@ func DropDB() error {
 	err := db.Migrator().DropTable(
 		// entities.UserRole{},
 		// entities.Role{},
+		entities.Webhook{},
 		entities.ApiKey{},
 		entities.ExtractionResult{},
 		entities.Workflow{},

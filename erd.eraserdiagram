@@ -29,5 +29,24 @@ extraction_results {
     workflow_id uint fk
 }
 
+api_keys {
+    id uint pk
+    key string unique
+    scopes jsonb
+    user_id uint fk
+}
+
+webhooks {
+    id uint pk
+    url string
+    method string
+    workflow_id uint fk
+}
+
 workflows.user_id > users.id
+
 extraction_results.workflow_id > workflows.id
+
+api_keys.user_id > users.id
+
+webhooks.workflow_id > workflows.id
