@@ -114,17 +114,12 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		End:        end,
 	}
 
-	renderTemplate(c, http.StatusOK, "extraction_results.html", gin.H{
-		"Title":           "Extraction Results",
-		"User":            user,
-		"WorkflowID":      workflow.ID,
-		"WorkflowTitle":   workflow.Title,
+	renderWorkflowTemplate(c, http.StatusOK, "extraction_results.html", "results", workflow.Title, workflow.Description, workflow.ID, user, gin.H{
 		"WorkflowPrompt":  workflow.Prompt,
 		"WorkflowSchemas": schemas,
 		"Results":         resultsVM,
 		"SelectedResult":  selectedResultVM,
 		"Pagination":      paginationVM,
-		"ActiveMenu":      "workflows", // Highlights workflows menu
 	})
 }
 

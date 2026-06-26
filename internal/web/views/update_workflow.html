@@ -1,19 +1,4 @@
-{{ define "content" }}
-<header class="page-header">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <a href="/workflows" class="btn-back"
-           hx-get="/workflows"
-           hx-target=".main-wrapper"
-           hx-select=".main-wrapper"
-           hx-swap="outerHTML"
-           hx-push-url="true"
-           title="Back to list">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </a>
-        <h1 class="page-title" style="margin: 0;">Update Workflow</h1>
-    </div>
-</header>
-
+{{ define "tab_content" }}
 <div style="width: 100%; padding-bottom: 40px;">
     <!-- Target error indicator for form submission -->
     <div id="error-alert"></div>

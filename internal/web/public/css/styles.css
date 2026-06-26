@@ -989,6 +989,16 @@ a:hover {
     }
 }
 
+/* Workflow Management Sub-navigation Tabs */
+.workflow-tab:hover {
+    color: var(--text-primary) !important;
+}
+
+.workflow-tab.active {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+}
+
 
 
 

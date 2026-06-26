@@ -237,13 +237,9 @@ func (h *WorkflowWebHandler) ShowUpdateWorkflow(c *gin.Context) {
 	schemasJsonBytes, _ := json.Marshal(schemas)
 	schemasJsonStr := string(schemasJsonBytes)
 
-	renderTemplate(c, http.StatusOK, "update_workflow.html", gin.H{
-		"Title":           "Update Workflow",
-		"User":            user,
-		"Workflow":        workflow,
-		"WorkflowSchemas": schemas,
-		"SchemasJson":     template.JS(schemasJsonStr),
-		"ActiveMenu":      "workflows",
+	renderWorkflowTemplate(c, http.StatusOK, "update_workflow.html", "edit", workflow.Title, workflow.Description, workflow.ID, user, gin.H{
+		"Workflow":    workflow,
+		"SchemasJson": template.JS(schemasJsonStr),
 	})
 }
 
@@ -333,4 +329,33 @@ func (h *WorkflowWebHandler) HandleUpdateWorkflow(c *gin.Context) {
 	} else {
 		c.Redirect(http.StatusSeeOther, "/workflows")
 	}
+}
+
+// ShowWorkflowEvents renders the workflow events placeholder page
+func (h *WorkflowWebHandler) ShowWorkflowEvents(c *gin.Context) {
+	userId, exists := c.Get("userId")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	user, err := h.userService.GetByID(c, userId)
+	if err != nil {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	workflowIDStr := c.Param("id")
+	workflow, err := h.workflowService.GetByID(c, workflowIDStr)
+	if err != nil {
+		c.Redirect(http.StatusSeeOther, "/workflows")
+		return
+	}
+
+	if workflow.UserID != uint(userId.(float64)) {
+		c.Redirect(http.StatusSeeOther, "/workflows")
+		return
+	}
+
+	renderWorkflowTemplate(c, http.StatusOK, "events_tab.html", "events", workflow.Title, workflow.Description, workflow.ID, user, nil)
 }

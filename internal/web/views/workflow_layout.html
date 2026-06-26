@@ -1,0 +1,78 @@
+{{ define "content" }}
+<div x-data="{ showUploadModal: false, selectedFile: null, dragOver: false, uploading: false }" 
+     @workflow-started.window="showUploadModal = false"
+     style="width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <!-- Workflow Header -->
+    <header class="page-header" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a href="/workflows" class="btn-back"
+               hx-get="/workflows"
+               hx-target=".main-wrapper"
+               hx-select=".main-wrapper"
+               hx-swap="outerHTML"
+               hx-push-url="true"
+               title="Back to workflows">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <h1 class="page-title" style="font-size: 20px; margin: 0;">{{ .WorkflowTitle }}</h1>
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">{{ .WorkflowDescription }}</p>
+            </div>
+        </div>
+
+        {{ if eq .ActiveTab "results" }}
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <button type="button" 
+                    class="btn btn-primary" 
+                    style="width: auto; display: flex; align-items: center; gap: 8px;"
+                    @click="showUploadModal = true; selectedFile = null; document.getElementById('file-input-modal').value = ''; document.getElementById('modal-upload-error').innerHTML = '';">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Start Workflow</span>
+            </button>
+        </div>
+        {{ end }}
+    </header>
+
+    <!-- Sub-navigation Tabs -->
+    <div class="workflow-tabs" style="display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding-bottom: 1px;">
+        <a href="/workflows/{{ .WorkflowID }}/results"
+           hx-get="/workflows/{{ .WorkflowID }}/results"
+           hx-target=".main-wrapper"
+           hx-select=".main-wrapper"
+           hx-swap="outerHTML"
+           hx-push-url="true"
+           class="workflow-tab {{ if eq .ActiveTab "results" }}active{{ end }}"
+           style="padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Results
+        </a>
+        <a href="/workflows/{{ .WorkflowID }}/edit"
+           hx-get="/workflows/{{ .WorkflowID }}/edit"
+           hx-target=".main-wrapper"
+           hx-select=".main-wrapper"
+           hx-swap="outerHTML"
+           hx-push-url="true"
+           class="workflow-tab {{ if eq .ActiveTab "edit" }}active{{ end }}"
+           style="padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+            Edit Settings
+        </a>
+        <a href="/workflows/{{ .WorkflowID }}/events"
+           hx-get="/workflows/{{ .WorkflowID }}/events"
+           hx-target=".main-wrapper"
+           hx-select=".main-wrapper"
+           hx-swap="outerHTML"
+           hx-push-url="true"
+           class="workflow-tab {{ if eq .ActiveTab "events" }}active{{ end }}"
+           style="padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Events
+        </a>
+    </div>
+
+    <!-- Active Tab Content Area -->
+    <div class="tab-content-container" style="display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%;">
+        {{ template "tab_content" . }}
+    </div>
+</div>
+{{ end }}
