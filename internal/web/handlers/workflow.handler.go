@@ -331,31 +331,3 @@ func (h *WorkflowWebHandler) HandleUpdateWorkflow(c *gin.Context) {
 	}
 }
 
-// ShowWorkflowEvents renders the workflow events placeholder page
-func (h *WorkflowWebHandler) ShowWorkflowEvents(c *gin.Context) {
-	userId, exists := c.Get("userId")
-	if !exists {
-		c.Redirect(http.StatusSeeOther, "/login")
-		return
-	}
-
-	user, err := h.userService.GetByID(c, userId)
-	if err != nil {
-		c.Redirect(http.StatusSeeOther, "/login")
-		return
-	}
-
-	workflowIDStr := c.Param("id")
-	workflow, err := h.workflowService.GetByID(c, workflowIDStr)
-	if err != nil {
-		c.Redirect(http.StatusSeeOther, "/workflows")
-		return
-	}
-
-	if workflow.UserID != uint(userId.(float64)) {
-		c.Redirect(http.StatusSeeOther, "/workflows")
-		return
-	}
-
-	renderWorkflowTemplate(c, http.StatusOK, "events_tab.html", "events", workflow.Title, workflow.Description, workflow.ID, user, nil)
-}

@@ -18,6 +18,11 @@ const (
 	PermApiKeysRead   = "apiKeys#read"
 	PermApiKeysUpdate = "apiKeys#update"
 	PermApiKeysDelete = "apiKeys#delete"
+
+	PermWebhooksCreate = "webhooks#create"
+	PermWebhooksRead   = "webhooks#read"
+	PermWebhooksUpdate = "webhooks#update"
+	PermWebhooksDelete = "webhooks#delete"
 )
 
 var AvailablePerms = []string{
@@ -38,4 +43,9 @@ var AvailablePerms = []string{
 	PermApiKeysRead,
 	PermApiKeysUpdate,
 	PermApiKeysDelete,
+
+	PermWebhooksCreate,
+	PermWebhooksRead,
+	PermWebhooksUpdate,
+	PermWebhooksDelete,
 }

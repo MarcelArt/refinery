@@ -206,6 +206,30 @@
                               style="height: 60px; resize: vertical; font-family: var(--font-sans); background-color: var(--bg-dark); border: 1px solid var(--border-color); font-size: 12px; padding: 8px 12px;" 
                               placeholder="e.g. Focus on extracting items containing 'service fee', or filter out taxes..."></textarea>
                 </div>
+
+                <!-- Metadata Input -->
+                <div style="display: flex; flex-direction: column; gap: 6px;" x-data="{ isValidJson: true }">
+                    <label for="metadata" style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--accent); letter-spacing: 0.03em;">Metadata (Optional JSON String)</label>
+                    <textarea id="metadata" 
+                              name="metadata" 
+                              class="form-input" 
+                              style="height: 60px; resize: vertical; font-family: monospace; background-color: var(--bg-dark); border: 1px solid var(--border-color); font-size: 12px; padding: 8px 12px;" 
+                              :style="!isValidJson ? 'border-color: #ef4444; box-shadow: 0 0 0 1px #ef4444;' : ''"
+                              placeholder='e.g. {"customerId": 12345, "source": "web_ui"}'
+                              @input="
+                                  try {
+                                      if ($el.value.trim() === '') {
+                                          isValidJson = true;
+                                      } else {
+                                          JSON.parse($el.value);
+                                          isValidJson = true;
+                                      }
+                                  } catch(e) {
+                                      isValidJson = false;
+                                  }
+                              "></textarea>
+                    <span x-show="!isValidJson" style="font-size: 10px; color: #ef4444; margin-top: 2px;">Invalid JSON format. Please verify.</span>
+                </div>
             </div>
             
             <!-- Modal Footer -->

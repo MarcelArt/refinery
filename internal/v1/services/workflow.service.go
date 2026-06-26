@@ -123,6 +123,7 @@ func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Wor
 	writer.WriteField("system", enums.SysPromptPDFText)
 	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
 	writer.WriteField("extractionId", strconv.Itoa(int(erID)))
+	writer.WriteField("metadata", workflowOption.Metadata)
 
 	contentType := writer.FormDataContentType()
 	writer.Close()
@@ -177,6 +178,7 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	writer.WriteField("system", enums.SysPromptPicture)
 	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
 	writer.WriteField("extractionId", strconv.Itoa(int(erID)))
+	writer.WriteField("metadata", workflowOption.Metadata)
 
 	contentType := writer.FormDataContentType()
 	writer.Close()

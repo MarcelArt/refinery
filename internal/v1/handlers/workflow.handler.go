@@ -169,7 +169,8 @@ func (h *WorkflowHandler) GetByID(c *gin.Context) {
 // @Produce      json
 // @Param        id    path      string  true  "Workflow ID"
 // @Param        file  formData  file    true  "File to upload"
-// @Param        file  formData  string    false  "Additional prompt to apply during runtime"
+// @Param        additionalPrompt  formData  string    false  "Additional prompt to apply during runtime"
+// @Param        metadata  formData  string    false  "Metadata to include on webhook triggers"
 // @Success      200   {object}  common.Result[any]
 // @Failure      400   {object}  common.Result[string]
 // @Failure      401   {object}  common.Result[string]
@@ -181,6 +182,7 @@ func (h *WorkflowHandler) Upload(c *gin.Context) {
 	id := c.Param("id")
 	workflowOption := models.WorkflowStartOption{
 		AdditionalPrompt: c.PostForm("additionalPrompt"),
+		Metadata:         c.PostForm("metadata"),
 	}
 
 	formFile, err := c.FormFile("file")

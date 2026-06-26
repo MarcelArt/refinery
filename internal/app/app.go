@@ -22,12 +22,14 @@ type App struct {
 	wHandler  *handlers.WorkflowHandler
 	erHandler *handlers.ExtractionResultHandler
 	akHandler *handlers.ApiKeyHandler
+	whHandler *handlers.WebhookHandler
 	authM     *middlewares.AuthMiddleware
 	webAuthM  *webroutes.WebAuthMiddleware
 	authWebH  *webhandlers.AuthWebHandler
 	wfWebH    *webhandlers.WorkflowWebHandler
 	erWebH    *webhandlers.ExtractionResultWebHandler
 	akWebH    *webhandlers.ApiKeyWebHandler
+	whWebH    *webhandlers.WebhookWebHandler
 }
 
 func New(
@@ -35,24 +37,28 @@ func New(
 	wHandler *handlers.WorkflowHandler,
 	erHandler *handlers.ExtractionResultHandler,
 	akHandler *handlers.ApiKeyHandler,
+	whHandler *handlers.WebhookHandler,
 	authM *middlewares.AuthMiddleware,
 	webAuthM *webroutes.WebAuthMiddleware,
 	authWebH *webhandlers.AuthWebHandler,
 	wfWebH *webhandlers.WorkflowWebHandler,
 	erWebH *webhandlers.ExtractionResultWebHandler,
 	akWebH *webhandlers.ApiKeyWebHandler,
+	whWebH *webhandlers.WebhookWebHandler,
 ) *App {
 	return &App{
 		uHandler:  uHandler,
 		wHandler:  wHandler,
 		erHandler: erHandler,
 		akHandler: akHandler,
+		whHandler: whHandler,
 		authM:     authM,
 		webAuthM:  webAuthM,
 		authWebH:  authWebH,
 		wfWebH:    wfWebH,
 		erWebH:    erWebH,
 		akWebH:    akWebH,
+		whWebH:    whWebH,
 	}
 }
 
@@ -74,9 +80,9 @@ func (a *App) Run() error {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	api := r.Group("/api")
-	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM)
+	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM, a.whHandler)
 
-	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH, a.akWebH)
+	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH, a.akWebH, a.whWebH)
 
 	port := fmt.Sprintf(":%s", configs.Env.PORT)
 	log.Printf("Listening on http://localhost%s", port)

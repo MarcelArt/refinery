@@ -30,6 +30,7 @@ type ExtractionResultPage struct {
 }
 
 type ContentLLM struct {
-	Content string `json:"content"`
-	Source  string `json:"source"`
+	Content  string `json:"content"`
+	Source   string `json:"source"`
+	Metadata string `json:"metadata"`
 }
