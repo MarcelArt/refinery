@@ -68,7 +68,7 @@ func (s *WorkflowService) UploadToWorkflow(c context.Context, id any, filename s
 	switch workflow.Type {
 	case enums.WorkflowPDFText:
 		return s.handlePDFText(c, workflow, filename, file)
-	case enums.PromptPicture:
+	case enums.WorkflowPicture:
 		return s.handlePicture(c, workflow, filename, file)
 	default:
 		return enums.ErrUnknownWorkflowType
@@ -155,7 +155,7 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	prompt := fmt.Sprintf(enums.PromptPicture, workflow.Prompt, schemaStr, jsonExample)
 
 	writer.WriteField("prompt", prompt)
-	writer.WriteField("system", enums.SysPromptPDFText)
+	writer.WriteField("system", enums.SysPromptPicture)
 	writer.WriteField("workflowId", strconv.Itoa(int(workflow.ID)))
 	writer.WriteField("extractionId", strconv.Itoa(int(erID)))
 
