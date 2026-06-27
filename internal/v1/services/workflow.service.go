@@ -28,15 +28,17 @@ type WorkflowService struct {
 	repo   repositories.IWorkflowRepo
 	nRepo  repositories.IN8NRepo
 	erRepo repositories.IExtractionResultRepo
+	r2Repo common.IS3Repo
 }
 
 var _ IWorkflowService = &WorkflowService{}
 
-func NewWorkflowService(repo repositories.IWorkflowRepo, nRepo repositories.IN8NRepo, erRepo repositories.IExtractionResultRepo) *WorkflowService {
+func NewWorkflowService(repo repositories.IWorkflowRepo, nRepo repositories.IN8NRepo, erRepo repositories.IExtractionResultRepo, r2Repo common.IS3Repo) *WorkflowService {
 	return &WorkflowService{
 		repo:   repo,
 		nRepo:  nRepo,
 		erRepo: erRepo,
+		r2Repo: r2Repo,
 	}
 }
 
@@ -104,9 +106,19 @@ func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Wor
 	defer tx.Rollback()
 	erRepo := repositories.NewExtractionResultRepo(tx)
 
+	objectKey := fmt.Sprintf("%s-%d/%s", workflow.Title, workflow.ID, filename)
+	if err := common.ResetIOCursor(file); err != nil {
+		return fmt.Errorf("failed resetting file cursoer: %w", err)
+	}
+	fileURL, _, err := s.r2Repo.UploadFile(c, configs.Env.R2Bucket, file, objectKey)
+	if err != nil {
+		return fmt.Errorf("failed uploading pdf to r2: %w", err)
+	}
+
 	extraction := models.ExtractionResultInput{
 		Status:     "IN_PROGRESS",
 		WorkflowID: workflow.ID,
+		Attachment: fileURL,
 	}
 	erID, err := erRepo.Create(c, extraction)
 	if err != nil {
@@ -159,9 +171,19 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	defer tx.Rollback()
 	erRepo := repositories.NewExtractionResultRepo(tx)
 
+	objectKey := fmt.Sprintf("%s-%d/%s", workflow.Title, workflow.ID, filename)
+	if err := common.ResetIOCursor(file); err != nil {
+		return fmt.Errorf("failed resetting file cursor: %w", err)
+	}
+	fileURL, _, err := s.r2Repo.UploadFile(c, configs.Env.R2Bucket, file, objectKey)
+	if err != nil {
+		return fmt.Errorf("failed uploading picture to r2: %w", err)
+	}
+
 	extraction := models.ExtractionResultInput{
 		Status:     "IN_PROGRESS",
 		WorkflowID: workflow.ID,
+		Attachment: fileURL,
 	}
 	erID, err := erRepo.Create(c, extraction)
 	if err != nil {
