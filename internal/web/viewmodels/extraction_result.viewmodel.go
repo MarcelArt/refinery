@@ -11,12 +11,14 @@ type ExtractionResultRowViewModel struct {
 }
 
 type ExtractionResultDetailsViewModel struct {
-	ID         uint
-	CreatedAt  time.Time
-	Status     string
-	FinishedAt *time.Time
-	Columns    []string
-	Rows       []map[string]any
+	ID           uint
+	CreatedAt    time.Time
+	Status       string
+	FinishedAt   *time.Time
+	Columns      []string
+	Rows         []map[string]any
+	Attachment   string
+	WorkflowType string
 }
 
 func (vm ExtractionResultDetailsViewModel) FormattedFinishedAt() string {

@@ -73,12 +73,14 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		if err == nil && res.WorkflowID == workflow.ID {
 			jsonArray, _ := res.Json.Deserialize()
 			selectedResultVM = &viewmodels.ExtractionResultDetailsViewModel{
-				ID:         res.ID,
-				CreatedAt:  res.CreatedAt,
-				Status:     res.Status,
-				FinishedAt: res.FinishedAt,
-				Columns:    extractUniqueKeys(jsonArray),
-				Rows:       jsonArray,
+				ID:           res.ID,
+				CreatedAt:    res.CreatedAt,
+				Status:       res.Status,
+				FinishedAt:   res.FinishedAt,
+				Columns:      extractUniqueKeys(jsonArray),
+				Rows:         jsonArray,
+				Attachment:   res.Attachment,
+				WorkflowType: workflow.Type,
 			}
 		}
 	} else if len(pages) > 0 {
@@ -86,12 +88,14 @@ func (h *ExtractionResultWebHandler) ShowResults(c *gin.Context) {
 		firstResult := pages[0]
 		jsonArray, _ := firstResult.Json.Deserialize()
 		selectedResultVM = &viewmodels.ExtractionResultDetailsViewModel{
-			ID:         firstResult.ID,
-			CreatedAt:  firstResult.CreatedAt,
-			Status:     firstResult.Status,
-			FinishedAt: firstResult.FinishedAt,
-			Columns:    extractUniqueKeys(jsonArray),
-			Rows:       jsonArray,
+			ID:           firstResult.ID,
+			CreatedAt:    firstResult.CreatedAt,
+			Status:       firstResult.Status,
+			FinishedAt:   firstResult.FinishedAt,
+			Columns:      extractUniqueKeys(jsonArray),
+			Rows:         jsonArray,
+			Attachment:   firstResult.Attachment,
+			WorkflowType: firstResult.WorkflowType,
 		}
 	}
 
@@ -134,14 +138,22 @@ func (h *ExtractionResultWebHandler) ShowResultDetails(c *gin.Context) {
 		return
 	}
 
+	workflow, err := h.workflowService.GetByID(c, res.WorkflowID)
+	if err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{"Error": "Workflow not found"})
+		return
+	}
+
 	jsonArray, _ := res.Json.Deserialize()
 	selectedResultVM := &viewmodels.ExtractionResultDetailsViewModel{
-		ID:         res.ID,
-		CreatedAt:  res.CreatedAt,
-		Status:     res.Status,
-		FinishedAt: res.FinishedAt,
-		Columns:    extractUniqueKeys(jsonArray),
-		Rows:       jsonArray,
+		ID:           res.ID,
+		CreatedAt:    res.CreatedAt,
+		Status:       res.Status,
+		FinishedAt:   res.FinishedAt,
+		Columns:      extractUniqueKeys(jsonArray),
+		Rows:         jsonArray,
+		Attachment:   res.Attachment,
+		WorkflowType: workflow.Type,
 	}
 
 	// Parse extraction_results.html to execute the result_details block directly
