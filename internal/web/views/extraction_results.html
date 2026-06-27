@@ -348,13 +348,11 @@
     </div>
     {{ end }}
 
-    <div style="display: grid; gap: 20px; width: 100%; align-items: start;"
-         :style="viewMode === 'split' ? 'grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));' : 'grid-template-columns: 1fr;'">
+    <div :style="viewMode === 'split' ? 'display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: start; min-width: 0; max-width: 100%;' : 'display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; align-items: start; min-width: 0; max-width: 100%;'">
          
          <!-- Left Container: Result Table -->
          <div x-show="viewMode === 'result' || viewMode === 'split'" 
-              :style="viewMode === 'split' ? 'width: 100%; min-width: 0;' : 'width: 100%;'"
-              style="transition: all 0.2s ease;">
+              style="width: 100%; min-width: 0; max-width: 100%; transition: all 0.2s ease;">
              {{ if .Rows }}
              <div class="table-container" style="box-shadow: none;">
                  <table class="data-table">
@@ -394,8 +392,7 @@
          <!-- Right Container: Source File Viewer -->
          {{ if .Attachment }}
          <div x-show="viewMode === 'file' || viewMode === 'split'" 
-              :style="viewMode === 'split' ? 'width: 100%; min-width: 0;' : 'width: 100%;'"
-              style="transition: all 0.2s ease;">
+              style="width: 100%; min-width: 0; max-width: 100%; transition: all 0.2s ease;">
              
              <!-- Loading State -->
              <div x-show="loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 6px; height: 600px; gap: 12px;">
