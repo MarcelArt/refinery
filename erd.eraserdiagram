@@ -13,6 +13,7 @@ workflows {
     description string
     prompt string
     schemas jsonb
+    type string
     user_id uint fk
 }
 schemas {
@@ -26,11 +27,15 @@ extraction_results {
     id uint pk
     raw string
     json jsonb
+    source string
+    status string
+    finished_at timestampz null
     workflow_id uint fk
 }
 
 api_keys {
     id uint pk
+    name string
     key string unique
     scopes jsonb
     user_id uint fk
@@ -38,8 +43,10 @@ api_keys {
 
 webhooks {
     id uint pk
+    display_name string
     url string
     method string
+    hmac_key string
     workflow_id uint fk
 }
 
