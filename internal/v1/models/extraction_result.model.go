@@ -15,18 +15,22 @@ type ExtractionResultInput struct {
 	Source     string                               `json:"source"`
 	Status     string                               `gorm:"default:IN_PROGRESS" json:"status"` // IN_PROGRESS, DONE, FAILED
 	FinishedAt *time.Time                           `json:"finishedAt"`
-	WorkflowID uint                                 `gorm:"not null" json:"workflowId"`
+	Attachment string                               `json:"attachment"`
+
+	WorkflowID uint `gorm:"not null" json:"workflowId"`
 }
 
 type ExtractionResultPage struct {
-	ID         uint                                 `json:"ID"`
-	CreatedAt  time.Time                            `json:"CreatedAt"`
-	Raw        string                               `json:"raw"`
-	Json       jsonb.JSONB[entities.ExtractionJSON] `json:"json"`
-	Source     string                               `json:"source"`
-	Status     string                               `gorm:"default:IN_PROGRESS" json:"status"` // IN_PROGRESS, DONE, FAILED
-	FinishedAt *time.Time                           `json:"finishedAt"`
-	WorkflowID uint                                 `json:"workflowId"`
+	ID           uint                                 `json:"ID"`
+	CreatedAt    time.Time                            `json:"CreatedAt"`
+	Raw          string                               `json:"raw"`
+	Json         jsonb.JSONB[entities.ExtractionJSON] `json:"json"`
+	Source       string                               `json:"source"`
+	Status       string                               `gorm:"default:IN_PROGRESS" json:"status"` // IN_PROGRESS, DONE, FAILED
+	FinishedAt   *time.Time                           `json:"finishedAt"`
+	Attachment   string                               `json:"attachment"`
+	WorkflowType string                               `json:"workflowType"`
+	WorkflowID   uint                                 `json:"workflowId"`
 }
 
 type ContentLLM struct {

@@ -29,8 +29,10 @@ func NewExtractionResultRepo(db *gorm.DB) *ExtractionResultRepo {
 		db: db,
 		pageQuery: `
 			SELECT 
-				*
+				er.*,
+				w.type workflow_type
 			FROM extraction_results er
+			join workflows w on er.workflow_id = w.id 
 			where er.deleted_at isnull
 		`,
 	}
@@ -88,8 +90,10 @@ func (r *ExtractionResultRepo) GetByWorkflowID(c *gin.Context, workflowID any) (
 	extractionResults := make([]models.ExtractionResultPage, 0)
 	query := `
 		SELECT 
-			*
+			er.*,
+			w.type workflow_type
 		FROM extraction_results er
+		join workflows w on er.workflow_id = w.id 
 		where er.deleted_at isnull
 		and er.workflow_id = ?
 		order by er.id desc

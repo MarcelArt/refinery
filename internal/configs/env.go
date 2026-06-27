@@ -22,6 +22,12 @@ type env struct {
 	DefaultEmail    string
 	DefaultPassword string
 	N8NBaseURL      string
+	R2AccountID     string
+	R2AccessKeyID   string
+	R2SecretKeyID   string
+	R2Token         string
+	R2PublicDomain  string
+	R2Bucket        string
 }
 
 var Env *env
@@ -48,5 +54,11 @@ func SetupENV() {
 		DefaultEmail:    os.Getenv("DEFAULT_EMAIL"),
 		DefaultPassword: defaultPassword,
 		N8NBaseURL:      os.Getenv("N8N_BASE_URL"),
+		R2AccountID:     os.Getenv("R2_ACCOUNT_ID"),
+		R2AccessKeyID:   os.Getenv("R2_ACCESS_KEY_ID"),
+		R2SecretKeyID:   os.Getenv("R2_SECRET_KEY_ID"),
+		R2Token:         os.Getenv("R2_TOKEN"),
+		R2PublicDomain:  os.Getenv("R2_PUBLIC_DOMAIN"),
+		R2Bucket:        os.Getenv("R2_BUCKET"),
 	}
 }

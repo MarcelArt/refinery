@@ -15,6 +15,9 @@ type ExtractionResult struct {
 	Source     string                      `json:"source"`
 	Status     string                      `gorm:"default:IN_PROGRESS" json:"status"` // IN_PROGRESS, DONE, FAILED
 	FinishedAt *time.Time                  `json:"finishedAt"`
-	WorkflowID uint                        `gorm:"not null" json:"workflowId"`
-	Workflow   *Workflow                   `json:"workflow,omitempty"`
+	Attachment string                      `json:"attachment"`
+
+	WorkflowID uint `gorm:"not null" json:"workflowId"`
+
+	Workflow *Workflow `json:"workflow,omitempty"`
 }
