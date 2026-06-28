@@ -116,7 +116,7 @@ func (s *WorkflowService) handlePDFText(c context.Context, workflow entities.Wor
 	}
 
 	extraction := models.ExtractionResultInput{
-		Status:     "IN_PROGRESS",
+		Status:     enums.StatusInProgress,
 		WorkflowID: workflow.ID,
 		Attachment: fileURL,
 	}
@@ -181,7 +181,7 @@ func (s *WorkflowService) handlePicture(c context.Context, workflow entities.Wor
 	}
 
 	extraction := models.ExtractionResultInput{
-		Status:     "IN_PROGRESS",
+		Status:     enums.StatusInProgress,
 		WorkflowID: workflow.ID,
 		Attachment: fileURL,
 	}
