@@ -24,9 +24,4 @@ func setupWorkflowRoutes(r *gin.Engine, authM *WebAuthMiddleware, h *handlers.Wo
 	r.GET("/workflows/:id", authM.RequireAuth(), func(c *gin.Context) {
 		c.Redirect(http.StatusSeeOther, "/workflows/"+c.Param("id")+"/results")
 	})
-	
-	// Root redirects to dashboard page (which is protected by RequireAuth)
-	r.GET("/", authM.RequireAuth(), func(c *gin.Context) {
-		c.Redirect(http.StatusSeeOther, "/dashboard")
-	})
 }

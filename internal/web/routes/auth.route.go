@@ -6,6 +6,8 @@ import (
 )
 
 func setupAuthRoutes(r *gin.Engine, authM *WebAuthMiddleware, h *handlers.AuthWebHandler) {
+	r.GET("/", h.ShowLanding)
+	
 	r.GET("/login", authM.RedirectIfAuthenticated(), h.ShowLogin)
 	r.POST("/login", authM.RedirectIfAuthenticated(), h.HandleLogin)
 	

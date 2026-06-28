@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/v1/models"
 	"github.com/MarcelArt/refinery/internal/v1/services"
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,33 @@ func NewAuthWebHandler(userService services.IUserService) *AuthWebHandler {
 	return &AuthWebHandler{
 		userService: userService,
 	}
+}
+
+// ShowLanding renders the marketing landing page
+func (h *AuthWebHandler) ShowLanding(c *gin.Context) {
+	var isLoggedIn bool
+	at, err := c.Cookie("at")
+	if err == nil && at != "" {
+		claims, err := common.ParseToken(at)
+		if err == nil && claims["userId"] != nil {
+			isLoggedIn = true
+		}
+	}
+	if !isLoggedIn {
+		rt, err := c.Cookie("rt")
+		if err == nil && rt != "" {
+			claims, err := common.ParseToken(rt)
+			if err == nil && claims["userId"] != nil {
+				isLoggedIn = true
+			}
+		}
+	}
+
+	renderTemplate(c, http.StatusOK, "landing.html", gin.H{
+		"Title":      "AI-Powered Document Parsing",
+		"HideLayout": true,
+		"IsLoggedIn": isLoggedIn,
+	})
 }
 
 // ShowLogin renders the login page
