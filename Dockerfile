@@ -2,9 +2,10 @@
 FROM golang:1.26.4-alpine AS builder
 
 # Install certs and tzdata for security and timezone handling
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata git
 
 RUN go install github.com/swaggo/swag/cmd/swag@v1.16.6
+RUN go install github.com/google/go-licenses@latest
 
 WORKDIR /app
 
@@ -16,6 +17,11 @@ RUN go mod download
 COPY . .
 
 RUN swag init --parseDependency --parseInternal
+
+# Generate third-party licenses
+RUN rm -rf THIRD_PARTY_LICENSES && \
+    go-licenses save ./... --save_path=./THIRD_PARTY_LICENSES && \
+    find THIRD_PARTY_LICENSES -type f ! -iname "*license*" ! -iname "*licence*" -exec rm -f {} +
 
 # Build the Go application
 # CGO_ENABLED=0 creates a static binary
@@ -38,6 +44,7 @@ COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --chown=appuser:appgroup --from=builder /app/refinery /app/refinery
 COPY --chown=appuser:appgroup --from=builder /app/internal/web/views /app/internal/web/views
 COPY --chown=appuser:appgroup --from=builder /app/internal/web/public /app/internal/web/public
+COPY --chown=appuser:appgroup --from=builder /app/THIRD_PARTY_LICENSES /app/THIRD_PARTY_LICENSES
 
 # Use the non-root user
 USER appuser
