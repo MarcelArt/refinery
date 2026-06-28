@@ -9,6 +9,7 @@ import (
 	"github.com/MarcelArt/refinery/internal/v1/services"
 	"github.com/MarcelArt/refinery/internal/web/viewmodels"
 	"github.com/MarcelArt/refinery/pkg/jsonb"
+	"github.com/alexedwards/argon2id"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,8 +28,8 @@ func NewApiKeyWebHandler(
 	}
 }
 
-// ShowApiKeys renders the main API keys management page
-func (h *ApiKeyWebHandler) ShowApiKeys(c *gin.Context) {
+// ShowAccount renders the main account settings page
+func (h *ApiKeyWebHandler) ShowAccount(c *gin.Context) {
 	h.renderListWithExtra(c, nil)
 }
 
@@ -215,17 +216,87 @@ func (h *ApiKeyWebHandler) renderListWithExtra(c *gin.Context, extra gin.H) {
 	}
 
 	data := gin.H{
-		"Title":          "API Keys",
+		"Title":          "Account Settings",
 		"User":           user,
 		"ApiKeys":        apiKeysVM,
 		"Pagination":     paginationVM,
 		"AvailablePerms": enums.AvailablePerms,
-		"ActiveMenu":     "api-keys",
+		"ActiveMenu":     "account",
 	}
 
 	for k, v := range extra {
 		data[k] = v
 	}
 
-	renderTemplate(c, http.StatusOK, "api_keys.html", data)
+	renderTemplate(c, http.StatusOK, "account.html", data)
+}
+
+// HandleChangePassword processes password change requests
+func (h *ApiKeyWebHandler) HandleChangePassword(c *gin.Context) {
+	userId, exists := c.Get("userId")
+	if !exists {
+		c.Redirect(http.StatusSeeOther, "/login")
+		return
+	}
+
+	currentPassword := c.PostForm("currentPassword")
+	newPassword := c.PostForm("password")
+	confirmPassword := c.PostForm("confirmPassword")
+
+	if currentPassword == "" || newPassword == "" || confirmPassword == "" {
+		renderFragment(c, http.StatusOK, "password_error_alert.html", gin.H{
+			"Error": "All fields are required",
+		})
+		return
+	}
+
+	if newPassword != confirmPassword {
+		renderFragment(c, http.StatusOK, "password_error_alert.html", gin.H{
+			"Error": "Passwords do not match",
+		})
+		return
+	}
+
+	if err := validatePassword(newPassword); err != nil {
+		renderFragment(c, http.StatusOK, "password_error_alert.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
+
+	user, err := h.userService.GetByID(c, userId)
+	if err != nil {
+		renderFragment(c, http.StatusOK, "password_error_alert.html", gin.H{
+			"Error": "User not found",
+		})
+		return
+	}
+
+	// Verify current password
+	ok, _ := argon2id.ComparePasswordAndHash(currentPassword, user.Password)
+	if !ok {
+		renderFragment(c, http.StatusOK, "password_error_alert.html", gin.H{
+			"Error": "Incorrect current password",
+		})
+		return
+	}
+
+	userInput := models.UserInput{
+		Username: user.Username,
+		Email:    user.Email,
+		Password: newPassword,
+	}
+
+	err = h.userService.Update(c, user.ID, userInput)
+	if err != nil {
+		renderFragment(c, http.StatusOK, "password_error_alert.html", gin.H{
+			"Error": "Failed to update password: " + err.Error(),
+		})
+		return
+	}
+
+	// Render success alert
+	renderFragment(c, http.StatusOK, "password_success_alert.html", gin.H{
+		"Message": "Password updated successfully",
+	})
 }

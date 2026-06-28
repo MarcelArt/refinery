@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/MarcelArt/refinery/internal/v1/models"
@@ -90,6 +91,13 @@ func (h *AuthWebHandler) HandleRegister(c *gin.Context) {
 		return
 	}
 
+	if err := validatePassword(password); err != nil {
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
+
 	userInput := models.UserInput{
 		Username: username,
 		Email:    email,
@@ -138,4 +146,31 @@ func (h *AuthWebHandler) HandleLogout(c *gin.Context) {
 	c.SetCookie("rt", "", -1, "/", "", false, true)
 	
 	c.Redirect(http.StatusSeeOther, "/login")
+}
+
+func validatePassword(password string) error {
+	if len(password) < 8 {
+		return fmt.Errorf("password must be at least 8 characters long")
+	}
+	var hasUpper, hasDigit, hasSpecial bool
+	for _, char := range password {
+		if char >= 'A' && char <= 'Z' {
+			hasUpper = true
+		} else if char >= '0' && char <= '9' {
+			hasDigit = true
+		} else if char < 'a' || char > 'z' {
+			// not lowercase a-z, not uppercase A-Z, not digit 0-9
+			hasSpecial = true
+		}
+	}
+	if !hasUpper {
+		return fmt.Errorf("password must contain at least one uppercase letter")
+	}
+	if !hasDigit {
+		return fmt.Errorf("password must contain at least one numeric character")
+	}
+	if !hasSpecial {
+		return fmt.Errorf("password must contain at least one special character")
+	}
+	return nil
 }
