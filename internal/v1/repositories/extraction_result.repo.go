@@ -15,6 +15,7 @@ import (
 type IExtractionResultRepo interface {
 	common.IBaseCrudRepo[entities.ExtractionResult, models.ExtractionResultInput, models.ExtractionResultPage]
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
+	GetStatusCount(c context.Context, status string, userID any) (float32, error)
 }
 
 type ExtractionResultRepo struct {
@@ -106,4 +107,20 @@ func (r *ExtractionResultRepo) GetByWorkflowID(c *gin.Context, workflowID any) (
 	page := pg.With(stmt).Request(c.Request).Response(&extractionResults)
 
 	return page, extractionResults
+}
+
+func (r *ExtractionResultRepo) GetStatusCount(c context.Context, status string, userID any) (float32, error) {
+	var count float32
+	query := `
+		select
+			count(1)
+		from extraction_results er
+		join workflows w on er.workflow_id = w.id
+		where er.deleted_at isnull
+		and w.user_id = ?
+		and er.status = ?
+	`
+
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID, status).Scan(c, &count)
+	return count, err
 }
