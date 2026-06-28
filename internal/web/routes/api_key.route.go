@@ -10,8 +10,9 @@ func setupApiKeyRoutes(
 	authM *WebAuthMiddleware,
 	h *handlers.ApiKeyWebHandler,
 ) {
-	r.GET("/api-keys", authM.RequireAuth(), h.ShowApiKeys)
-	r.POST("/api-keys", authM.RequireAuth(), h.HandleCreateApiKey)
-	r.POST("/api-keys/regenerate", authM.RequireAuth(), h.HandleRegenerateApiKey)
-	r.POST("/api-keys/delete", authM.RequireAuth(), h.HandleDeleteApiKey)
+	r.GET("/account", authM.RequireAuth(), h.ShowAccount)
+	r.POST("/account/api-keys", authM.RequireAuth(), h.HandleCreateApiKey)
+	r.POST("/account/api-keys/regenerate", authM.RequireAuth(), h.HandleRegenerateApiKey)
+	r.POST("/account/api-keys/delete", authM.RequireAuth(), h.HandleDeleteApiKey)
+	r.POST("/account/password", authM.RequireAuth(), h.HandleChangePassword)
 }
