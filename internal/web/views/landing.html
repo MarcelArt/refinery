@@ -1,0 +1,684 @@
+{{ define "content" }}
+<!-- Google Fonts for Landing Page -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --color-obsidian: #030304;
+        --color-carbon: #0b0c10;
+        --color-amber: #f59e0b;
+        --color-emerald: #10b981;
+        --color-sapphire: #3b82f6;
+        --color-platinum: #f3f4f6;
+        --color-gray-dark: #1f2937;
+        --color-gray-light: #9ca3af;
+        --font-display: 'Plus Jakarta Sans', sans-serif;
+        --font-mono: 'Space Grotesk', monospace;
+    }
+
+    body {
+        background-color: var(--color-obsidian) !important;
+        color: var(--color-platinum) !important;
+        font-family: var(--font-sans);
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* Gradient Background Effect */
+    .glowing-bg {
+        position: absolute;
+        top: -10%;
+        left: 20%;
+        width: 60%;
+        height: 60%;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, rgba(59, 130, 246, 0.03) 50%, transparent 100%);
+        pointer-events: none;
+        z-index: 1;
+        filter: blur(80px);
+    }
+
+    /* Navbar styling */
+    .landing-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        position: relative;
+        z-index: 10;
+        background: rgba(3, 3, 4, 0.7);
+        backdrop-filter: blur(12px);
+    }
+
+    .landing-nav .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .landing-nav .logo-icon {
+        width: 32px;
+        height: 32px;
+        background-color: var(--color-amber);
+        color: var(--color-obsidian);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .landing-nav .logo-text {
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--color-platinum);
+    }
+
+    .nav-buttons {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        padding: 100px 40px 60px 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        z-index: 5;
+    }
+
+    .badge-promo {
+        background-color: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        color: var(--color-amber);
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 24px;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .hero-title {
+        font-family: var(--font-display);
+        font-size: clamp(36px, 7vw, 64px);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin: 0 0 24px 0;
+        color: var(--color-platinum);
+        max-width: 900px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .hero-title span {
+        background: linear-gradient(135deg, var(--color-amber) 0%, #f4aa3a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(15px, 2vw, 18px);
+        color: var(--color-gray-light);
+        max-width: 680px;
+        line-height: 1.6;
+        margin: 0 0 40px 0;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .hero-ctas {
+        display: flex;
+        gap: 16px;
+        animation: fadeInUp 1.2s ease-out;
+        margin-bottom: 60px;
+    }
+
+    /* Sandbox Interactive Demo */
+    .sandbox-container {
+        width: 100%;
+        max-width: 1000px;
+        background-color: var(--color-carbon);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+        overflow: hidden;
+        margin: 40px auto 100px auto;
+        display: flex;
+        flex-direction: column;
+        animation: fadeInUp 1.4s ease-out;
+        text-align: left;
+    }
+
+    .sandbox-header {
+        background-color: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 14px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .window-dots {
+        display: flex;
+        gap: 6px;
+    }
+
+    .window-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .sandbox-body {
+        display: grid;
+        grid-template-columns: 1fr;
+        min-height: 380px;
+    }
+
+    @media (min-width: 768px) {
+        .sandbox-body {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .sandbox-left {
+        padding: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background-color: rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+        .sandbox-left {
+            border-bottom: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+    }
+
+    .sandbox-right {
+        padding: 24px;
+        background-color: #050608;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .json-key { color: #f4aa3a; }
+    .json-string { color: #10b981; }
+    .json-number { color: #60a5fa; }
+    .json-bracket { color: #e5e7eb; }
+
+    .demo-tab-btn.active {
+        background-color: rgba(245, 158, 11, 0.12) !important;
+        border-color: rgba(245, 158, 11, 0.3) !important;
+        color: var(--color-amber) !important;
+    }
+
+    /* Features Grid */
+    .features-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 100px 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 60px;
+    }
+
+    .section-header {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 800;
+        margin: 0 0 16px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .section-desc {
+        color: var(--color-gray-light);
+        font-size: 15px;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    @media (min-width: 768px) {
+        .features-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .feature-card {
+        background-color: var(--color-carbon);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 32px 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(245, 158, 11, 0.02) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+        border-color: rgba(245, 158, 11, 0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6);
+    }
+
+    .feature-card:hover::before {
+        opacity: 1;
+    }
+
+    .feature-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-amber);
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .feature-title {
+        font-family: var(--font-display);
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+        color: var(--color-platinum);
+    }
+
+    .feature-desc {
+        color: var(--color-gray-light);
+        font-size: 13.5px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(180deg, var(--color-obsidian) 0%, #06070a 100%);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 100px 40px;
+        text-align: center;
+    }
+
+    .cta-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: radial-gradient(circle at top, rgba(245, 158, 11, 0.05) 0%, transparent 70%), var(--color-carbon);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 60px 40px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Typist effect container */
+    .typing-cursor {
+        display: inline-block;
+        width: 6px;
+        height: 14px;
+        background-color: var(--color-emerald);
+        margin-left: 2px;
+        animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+        50% { opacity: 0; }
+    }
+</style>
+
+<div class="glowing-bg"></div>
+
+<!-- Top Navigation -->
+<nav class="landing-nav">
+    <div class="logo">
+        <span class="logo-icon">R</span>
+        <span class="logo-text">Refinery</span>
+    </div>
+    <div class="nav-buttons">
+        {{ if .IsLoggedIn }}
+        <a href="/dashboard" class="btn btn-primary" style="width: auto; font-size: 13.5px; padding: 8px 20px;">
+            Go to Dashboard
+        </a>
+        {{ else }}
+        <a href="/login" class="btn" style="width: auto; background: transparent; border: none; color: var(--color-gray-light); font-size: 13.5px; font-weight: 500;">
+            Sign In
+        </a>
+        <a href="/register" class="btn btn-primary" style="width: auto; font-size: 13.5px; padding: 8px 20px;">
+            Get Started
+        </a>
+        {{ end }}
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="badge-promo">AI-Powered Document Parsing</div>
+    <h1 class="hero-title">Refine Unstructured Data Into <span>Structured JSON</span></h1>
+    <p class="hero-subtitle">
+        Refinery is a developer-first cloud extraction platform. Define your schemas, upload PDF text or scanned images, and receive structured JSON payloads automatically triggered to your webhooks.
+    </p>
+    <div class="hero-ctas">
+        {{ if .IsLoggedIn }}
+        <a href="/dashboard" class="btn btn-primary" style="width: auto; font-size: 15px; padding: 12px 32px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);">
+            Go to Dashboard
+        </a>
+        {{ else }}
+        <a href="/register" class="btn btn-primary" style="width: auto; font-size: 15px; padding: 12px 32px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);">
+            Start Refining Free
+        </a>
+        <a href="/login" class="btn" style="width: auto; background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--color-platinum); font-size: 15px; padding: 12px 32px;">
+            Access Dashboard
+        </a>
+        {{ end }}
+    </div>
+
+    <!-- Sandbox Demo Component -->
+    <div class="sandbox-container" x-data="{ 
+        hasExtracted: false,
+        animating: false,
+        outputTab: 'table',
+        tableRows: [
+            { description: 'Premium Cardstock', quantity: 50, amount: 750.00 },
+            { description: 'Recycled Kraft rolls', quantity: 10, amount: 450.00 }
+        ],
+        visibleRowsCount: 0,
+        lines: [
+            '[',
+            '  {',
+            '    &quot;description&quot;: &quot;Premium Cardstock&quot;,',
+            '    &quot;quantity&quot;: 50,',
+            '    &quot;amount&quot;: 750.00',
+            '  },',
+            '  {',
+            '    &quot;description&quot;: &quot;Recycled Kraft rolls&quot;,',
+            '    &quot;quantity&quot;: 10,',
+            '    &quot;amount&quot;: 450.00',
+            '  }',
+            ']'
+        ],
+        visibleLines: [],
+        triggerExtraction() {
+            if (this.animating) return;
+            this.animating = true;
+            this.hasExtracted = true;
+            this.visibleLines = [];
+            this.visibleRowsCount = 0;
+            
+            // Animate table rows reveal
+            setTimeout(() => {
+                this.visibleRowsCount = 1;
+                setTimeout(() => {
+                    this.visibleRowsCount = 2;
+                }, 400);
+            }, 300);
+
+            // Animate JSON lines typing
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < this.lines.length) {
+                    this.visibleLines.push(this.lines[i]);
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    this.animating = false;
+                }
+            }, 100);
+        }
+    }">
+        <!-- Top bar with active schema mapping details -->
+        <div class="sandbox-header">
+            <div class="window-dots">
+                <span class="window-dot" style="background-color: #ef4444;"></span>
+                <span class="window-dot" style="background-color: #eab308;"></span>
+                <span class="window-dot" style="background-color: #22c55e;"></span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-gray-light); text-transform: uppercase; letter-spacing: 0.05em;">Interactive Engine Demo</div>
+        </div>
+
+        <!-- Target Schema Config Block -->
+        <div style="background-color: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-family: var(--font-mono); color: var(--color-gray-light);">
+                <span style="color: var(--color-amber); font-size: 14px;">⚡</span> 
+                <span style="font-weight: 600; color: var(--color-platinum);">Target Schema:</span>
+                <span style="background-color: rgba(245, 158, 11, 0.1); color: var(--color-amber); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); font-weight: 500;">invoice_items</span>
+                <span style="color: rgba(255,255,255,0.2);">→</span>
+                <span style="font-size: 11px; color: var(--color-gray-light); font-family: monospace;">[ description: String, quantity: Number, amount: Number ]</span>
+            </div>
+        </div>
+
+        <div class="sandbox-body">
+            
+            <!-- Left Side: Input Document Mock -->
+            <div class="sandbox-left">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="font-family: var(--font-mono); font-size: 10px; color: var(--color-amber); text-transform: uppercase; letter-spacing: 0.05em;">Input Source File</div>
+                    <div style="background-color: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; font-family: monospace; font-size: 11.5px; color: #cbd5e1; line-height: 1.5; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+                        <strong style="color: white;">ACME PAPER CORP.</strong><br>
+                        128 Station Road, Suite 9<br>
+                        -----------------------------------------<br>
+                        Date: June 28, 2026 &nbsp;&nbsp;&nbsp; Invoice: #INV-2026-991<br>
+                        -----------------------------------------<br>
+                        * 50x Premium Cardstock (White) &nbsp;&nbsp;&nbsp; $750.00<br>
+                        * 10x Recycled Kraft rolls &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $450.00<br>
+                        -----------------------------------------<br>
+                        Subtotal: $1,200.00 &nbsp;&nbsp; Tax (8%): $96.00<br>
+                        <span style="color: var(--color-amber); font-weight: bold;">TOTAL AMOUNT DUE: $1,296.00</span>
+                    </div>
+                </div>
+                <button type="button" 
+                        class="btn btn-primary" 
+                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px;"
+                        :disabled="animating"
+                        @click="triggerExtraction()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span x-text="animating ? 'Refining...' : 'Run Extraction Engine'">Run Extraction Engine</span>
+                </button>
+            </div>
+
+            <!-- Right Side: Dual Format Output -->
+            <div class="sandbox-right">
+                <div style="display: flex; flex-direction: column; gap: 14px; height: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--color-emerald); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                            <span>Output Structured Payload</span>
+                            <span x-show="animating" class="spinner" style="width: 10px; height: 10px; border-width: 2px;"></span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" 
+                                    @click="outputTab = 'table'" 
+                                    class="demo-tab-btn" 
+                                    :class="outputTab === 'table' ? 'active' : ''"
+                                    style="background: none; border: 1px solid rgba(255,255,255,0.08); color: var(--color-gray-light); padding: 4px 8px; font-family: var(--font-mono); font-size: 10px; border-radius: 4px; cursor: pointer; transition: all 0.2s ease;">
+                                Table View
+                            </button>
+                            <button type="button" 
+                                    @click="outputTab = 'json'" 
+                                    class="demo-tab-btn" 
+                                    :class="outputTab === 'json' ? 'active' : ''"
+                                    style="background: none; border: 1px solid rgba(255,255,255,0.08); color: var(--color-gray-light); padding: 4px 8px; font-family: var(--font-mono); font-size: 10px; border-radius: 4px; cursor: pointer; transition: all 0.2s ease;">
+                                JSON Array
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Display Box -->
+                    <div style="flex: 1; display: flex; flex-direction: column; min-height: 240px; background-color: #020203; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); overflow: auto; padding: 16px; box-sizing: border-box; justify-content: center; align-items: center;">
+                        
+                        <!-- Initial Prompt State -->
+                        <div x-show="!hasExtracted" style="color: var(--color-gray-light); font-style: italic; font-size: 12px; text-align: center;">
+                            Click "Run Extraction Engine" to see schema mapping output...
+                        </div>
+
+                        <!-- Flat Table View -->
+                        <div x-show="hasExtracted && outputTab === 'table'" style="width: 100%; height: 100%;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--font-mono); text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); color: var(--color-amber);">
+                                        <th style="padding: 8px 6px; font-weight: 600;">Description</th>
+                                        <th style="padding: 8px 6px; font-weight: 600; text-align: right;">Quantity</th>
+                                        <th style="padding: 8px 6px; font-weight: 600; text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="(row, idx) in tableRows" :key="idx">
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--color-platinum); transition: opacity 0.3s ease;" :style="idx < visibleRowsCount ? 'opacity: 1;' : 'opacity: 0;'">
+                                            <td style="padding: 10px 6px;" x-text="row.description"></td>
+                                            <td style="padding: 10px 6px; text-align: right; color: #60a5fa;" x-text="row.quantity"></td>
+                                            <td style="padding: 10px 6px; text-align: right; color: #10b981;" x-text="'$' + row.amount.toFixed(2)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- JSON Array View -->
+                        <div x-show="hasExtracted && outputTab === 'json'" style="width: 100%; height: 100%;">
+                            <pre style="margin: 0; font-family: monospace; font-size: 11.5px; line-height: 1.5; color: #94a3b8; white-space: pre-wrap; word-break: break-all;">
+<template x-for="(line, index) in visibleLines" :key="index">
+<div x-html="line
+    .replace(/(&quot;\w+&quot;):/g, '<span class=\'json-key\'>$1</span>:')
+    .replace(/: (&quot;[^&quot;]+&quot;)/g, ': <span class=\'json-string\'>$1</span>')
+    .replace(/: (\d+\.?\d*)/g, ': <span class=\'json-number\'>$1</span>')"></div>
+</template><span x-show="animating" class="typing-cursor"></span></pre>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-header">
+        <h2 class="section-title">Automate Document Pipelines</h2>
+        <p class="section-desc">
+            An elegant, production-grade cloud platform built to handle document data processing at any scale, instantly.
+        </p>
+    </div>
+
+    <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <h3 class="feature-title">AI-Driven Schemas</h3>
+            <p class="feature-desc">
+                Define the exact keys, types, and descriptions of what you need. Our LLM pipeline processes and structures the data accordingly with high accuracy.
+            </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <h3 class="feature-title">PDF & Image Extraction</h3>
+            <p class="feature-desc">
+                Supports standard text-based PDFs as well as scanned document images (PNG, JPG) using dual specialized extraction modes.
+            </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 15V9a4 4 0 0 0-4-4H9"/></svg>
+            </div>
+            <h3 class="feature-title">Developer Webhooks</h3>
+            <p class="feature-desc">
+                Trigger secure, signature-validated HMAC payloads to your own API endpoints, or downstream platforms like Zapier, Make, and n8n instantly.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-card">
+        <h2 style="font-family: var(--font-display); font-size: clamp(24px, 4vw, 36px); font-weight: 800; color: var(--color-platinum); margin: 0;">Ready to Streamline Your Data?</h2>
+        <p style="color: var(--color-gray-light); font-size: 15px; max-width: 500px; margin: 0; line-height: 1.6;">
+            Connect your workflows, define your target schemas, and start extracting structured data via API in minutes.
+        </p>
+        <a href="/register" class="btn btn-primary" style="width: auto; font-size: 15px; padding: 12px 36px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);">
+            Create Your Account
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer style="padding: 40px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.04); font-size: 12px; color: var(--color-gray-light); background-color: var(--color-obsidian);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>&copy; 2026 Refinery Platform. All rights reserved.</div>
+        <div style="display: flex; gap: 20px;">
+            <a href="/login" style="color: var(--color-gray-light); text-decoration: none;">Dashboard</a>
+            <a href="/register" style="color: var(--color-gray-light); text-decoration: none;">Sign Up</a>
+        </div>
+    </div>
+</footer>
+{{ end }}
