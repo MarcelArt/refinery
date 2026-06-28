@@ -23,6 +23,8 @@ const (
 	PermWebhooksRead   = "webhooks#read"
 	PermWebhooksUpdate = "webhooks#update"
 	PermWebhooksDelete = "webhooks#delete"
+
+	PermDashboardRead = "dashboard#read"
 )
 
 var AvailablePerms = []string{
@@ -48,4 +50,6 @@ var AvailablePerms = []string{
 	PermWebhooksRead,
 	PermWebhooksUpdate,
 	PermWebhooksDelete,
+
+	PermDashboardRead,
 }

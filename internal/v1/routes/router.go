@@ -14,6 +14,7 @@ func SetupRoutes(
 	akHandler *handlers.ApiKeyHandler,
 	authM *middlewares.AuthMiddleware,
 	whHandler *handlers.WebhookHandler,
+	dHandler *handlers.DashboardHandler,
 ) {
 	v1 := api.Group("/v1")
 	setupUserRoutes(v1, authM, uHandler)
@@ -21,4 +22,5 @@ func SetupRoutes(
 	setupExtractionResultRoutes(v1, authM, erHandler)
 	setupApiKeyRoutes(v1, authM, akHandler)
 	setupWebhookRoutes(v1, authM, whHandler)
+	setupDashboardRoutes(v1, authM, dHandler)
 }

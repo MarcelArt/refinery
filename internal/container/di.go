@@ -33,6 +33,7 @@ func New() *dig.Container {
 	c.Provide(services.NewExtractionResultService, dig.As(new(services.IExtractionResultService)))
 	c.Provide(services.NewApiKeyService, dig.As(new(services.IApiKeyService)))
 	c.Provide(services.NewWebhookService, dig.As(new(services.IWebhookService)))
+	c.Provide(services.NewDashboardService)
 
 	c.Provide(middlewares.NewAuthMiddleware)
 
@@ -41,6 +42,7 @@ func New() *dig.Container {
 	c.Provide(handlers.NewExtractionResultHandler)
 	c.Provide(handlers.NewApiKeyHandler)
 	c.Provide(handlers.NewWebhookHandler)
+	c.Provide(handlers.NewDashboardHandler)
 
 	// Web components
 	c.Provide(webroutes.NewWebAuthMiddleware)
