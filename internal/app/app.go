@@ -81,6 +81,7 @@ func (a *App) Run() error {
 	}))
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	r.GET("/licenses.txt", handleLicenses("THIRD_PARTY_LICENSES"))
 
 	api := r.Group("/api")
 	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM, a.whHandler, a.dHandler)

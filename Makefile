@@ -26,3 +26,6 @@ pull:
 	@git pull
 
 update: pull compose
+
+license:
+	@rm -rf THIRD_PARTY_LICENSES && go-licenses save ./... --save_path=./THIRD_PARTY_LICENSES
