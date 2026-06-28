@@ -188,3 +188,40 @@ func (h *ExtractionResultHandler) Webhook(c *gin.Context) {
 
 	c.JSON(http.StatusOK, common.ResultOk[any](nil, "Extraction result saved"))
 }
+
+// Webhook godoc
+// @Summary      Webhook to save extraction result from LLM
+// @Description  Save an extraction result using data received from the LLM webhook
+// @Tags         extraction-results
+// @Accept       json
+// @Produce      json
+// @Param        id     path      string             true  "Workflow ID"
+// @Param        input  body      models.ContentLLM  true  "Content from LLM"
+// @Success      201    {object}  common.Result[uint]
+// @Failure      400    {object}  common.Result[string]
+// @Failure      500    {object}  common.Result[string]
+// @Security     WebhookKey
+// @Router       /v1/extraction-results/{id}/webhook/error [post]
+func (h *ExtractionResultHandler) WebhookError(c *gin.Context) {
+	id := c.Param("id")
+	extractionID, err := strconv.Atoi(id)
+	if err != nil {
+		_, res := common.ResultErr(err, "invalid workflow id")
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	var input models.ContentLLM
+	if err := c.ShouldBindJSON(&input); err != nil {
+		_, res := common.ResultErr(err, "failed parsing json")
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if err := h.service.ExtractionFailed(c, uint(extractionID), input); err != nil {
+		c.JSON(common.ResultErr(err, "failed updating extraction result status"))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.ResultOk[any](nil, "Extraction result status updated"))
+}

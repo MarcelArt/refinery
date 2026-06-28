@@ -10,6 +10,7 @@ import (
 func setupExtractionResultRoutes(v1 *gin.RouterGroup, authM *middlewares.AuthMiddleware, h *handlers.ExtractionResultHandler) {
 	g := v1.Group("/extraction-results")
 	g.POST("/:id/webhook", authM.WebhookAuth, h.Webhook)
+	g.POST("/:id/webhook/error", authM.WebhookAuth, h.WebhookError)
 
 	extractionResults := v1.Group("/extraction-results", authM.Authn)
 

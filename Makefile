@@ -21,3 +21,8 @@ compose: compose-down
 
 secret:
 	openssl rand -base64 32
+
+pull:
+	@git pull
+
+update: pull compose
