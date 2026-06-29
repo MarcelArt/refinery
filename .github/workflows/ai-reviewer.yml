@@ -1,0 +1,44 @@
+name: AI Pull Request Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Crucial to get the diff between commits
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests
+
+      - name: Get PR Diff
+        id: get_diff
+        run: |
+          # Fetch the diff of the PR and save it to a file
+          git diff HEAD~1 > pr_diff.txt
+
+      - name: Run AI Review Script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_API_ENDPOINT: ${{ vars.AI_API_ENDPOINT }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+          AI_CHECKLIST: ${{ vars.AI_CHECKLIST }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: python .github/scripts/ai_review.py
