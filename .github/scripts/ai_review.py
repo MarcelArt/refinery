@@ -47,8 +47,8 @@ def main():
         "temperature": 0.2
     }
 
-    print(f"Sending request to {api_endpoint}/chat/completions using model {model}...")
-    response = requests.post(f"{api_endpoint}/chat/completions", headers=headers, json=payload)
+    print(f"Sending request to {api_endpoint} using model {model}...")
+    response = requests.post(f"{api_endpoint}", headers=headers, json=payload)
     
     if response.status_code != 200:
         print(f"API Error: {response.text}")
