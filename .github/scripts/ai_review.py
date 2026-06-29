@@ -44,7 +44,8 @@ def main():
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Here is the diff to review:\n\n{pr_diff}"}
         ],
-        "temperature": 0.2
+        "temperature": 0.2,
+        "stream": False
     }
 
     print(f"Sending request to {api_endpoint} using model {model}...")
