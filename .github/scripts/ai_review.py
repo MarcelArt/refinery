@@ -105,7 +105,7 @@ def main():
         comment = f"⚠️ **AI Review Error:** The AI provider returned an unparseable response.\n\nRaw output:\n```json\n{response.text}\n```"
 
     # 5. Post the Review back to the GitHub PR
-    github_url = f"[https://api.github.com/repos/](https://api.github.com/repos/){repo}/pulls/{pr_number}/reviews"
+    github_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews"
     github_headers = {
         "Authorization": f"token {github_token}",
         "Accept": "application/vnd.github.v3+json",
