@@ -58,10 +58,23 @@ def main():
     # 4. Parse the AI Response
     try:
         ai_data = response.json()
-        raw_content = ai_data['choices'][0]['message']['content'].strip()
-        # Clean up potential markdown wrapper codeblocks if the LLM ignored instructions
-        if raw_content.startswith("```json"):
-            raw_content = raw_content.strip("```json").strip("```").strip()
+        raw_content = ""
+        
+        # Format 1: OpenAI Standard (choices -> message -> content)
+        if 'choices' in ai_data:
+            raw_content = ai_data['choices'][0]['message']['content'].strip()
+        # Format 2: Ollama Native Standard (message -> content)
+        elif 'message' in ai_data and 'content' in ai_data['message']:
+            raw_content = ai_data['message']['content'].strip()
+        else:
+            raise KeyError("Could not find response content in standard OpenAI or Ollama layouts.")
+
+        # Clean up potential markdown code block wrappers if the LLM leaked them
+        if raw_content.startswith("```"):
+            raw_content = raw_content.split("```")[1]
+            if raw_content.startswith("json"):
+                raw_content = raw_content[4:]
+        raw_content = raw_content.strip()
             
         review_result = json.loads(raw_content)
         verdict = review_result.get("verdict", "REQUEST_CHANGES")
