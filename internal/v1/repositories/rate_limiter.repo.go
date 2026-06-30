@@ -87,7 +87,7 @@ func (r *RateLimiterRepo) GetByID(c context.Context, id any) (entities.RateLimit
 }
 
 func (r *RateLimiterRepo) GetTodayByUserID(c context.Context, userID any) (entities.RateLimiter, error) {
-	now := date.Now()
+	now := date.Local()
 	today := now.Formats("YYYY-MM-DD")
 
 	query := `
