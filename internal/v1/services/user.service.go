@@ -88,11 +88,15 @@ func (s *UserService) Login(c *gin.Context, input models.LoginInput) (models.Log
 	var res models.LoginResponse
 	user, err := s.repo.GetByUsernameOrEmail(c, input.Username)
 	if err != nil {
-		return res, err
+		return res, errors.New("invalid username/email or password")
 	}
 
 	if ok, _ := argon2id.ComparePasswordAndHash(input.Password, user.Password); !ok {
-		return res, errors.New("unauthorized")
+		return res, errors.New("invalid username/email or password")
+	}
+
+	if user.VerifiedAt == nil {
+		return res, errors.New("please verify your email address before signing in")
 	}
 
 	res, err = s.GenerateTokenPair(user, input.IsRemember, c.Request.Host)
