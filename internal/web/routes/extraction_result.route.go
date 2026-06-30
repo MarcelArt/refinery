@@ -20,5 +20,5 @@ func setupExtractionResultRoutes(
 	r.GET("/workflows/:id/results/details/:resultId", authM.RequireAuth(), h.ShowResultDetails)
 
 	// Start workflow by uploading a file
-	r.POST("/workflows/:id/results/upload", authM.RequireAuth(), h.Upload)
+	r.POST("/workflows/:id/results/upload", authM.RequireAuth(), h.RateLimit, h.Upload)
 }

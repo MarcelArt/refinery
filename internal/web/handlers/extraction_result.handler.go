@@ -1,32 +1,98 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"html/template"
 	"net/http"
 	"path/filepath"
 
+	"github.com/MarcelArt/refinery/internal/v1/middlewares"
 	"github.com/MarcelArt/refinery/internal/v1/models"
 	"github.com/MarcelArt/refinery/internal/v1/services"
 	"github.com/MarcelArt/refinery/internal/web/viewmodels"
 	"github.com/gin-gonic/gin"
 )
 
+type customResponseWriter struct {
+	gin.ResponseWriter
+	body    *bytes.Buffer
+	status  int
+	headers http.Header
+}
+
+func (w *customResponseWriter) Header() http.Header {
+	return w.headers
+}
+
+func (w *customResponseWriter) WriteHeader(status int) {
+	w.status = status
+}
+
+func (w *customResponseWriter) Write(b []byte) (int, error) {
+	return w.body.Write(b)
+}
+
+func (w *customResponseWriter) WriteString(s string) (int, error) {
+	return w.body.WriteString(s)
+}
+
 type ExtractionResultWebHandler struct {
 	extractionResultService services.IExtractionResultService
 	workflowService         services.IWorkflowService
 	userService             services.IUserService
+	rateLimitM              *middlewares.RateLimiterMiddleware
 }
 
 func NewExtractionResultWebHandler(
 	extractionResultService services.IExtractionResultService,
 	workflowService services.IWorkflowService,
 	userService services.IUserService,
+	rateLimitM *middlewares.RateLimiterMiddleware,
 ) *ExtractionResultWebHandler {
 	return &ExtractionResultWebHandler{
 		extractionResultService: extractionResultService,
 		workflowService:         workflowService,
 		userService:             userService,
+		rateLimitM:              rateLimitM,
+	}
+}
+
+// RateLimit acts as a delegate to the backend RateLimiterMiddleware
+func (h *ExtractionResultWebHandler) RateLimit(c *gin.Context) {
+	realWriter := c.Writer
+	blw := &customResponseWriter{
+		ResponseWriter: realWriter,
+		body:           bytes.NewBuffer(nil),
+		status:         http.StatusOK,
+		headers:        make(http.Header),
+	}
+	c.Writer = blw
+
+	h.rateLimitM.Limit(c)
+
+	// Restore the real writer
+	c.Writer = realWriter
+
+	if c.IsAborted() {
+		// Output the error HTML alert fragment instead of JSON
+		renderFragment(c, http.StatusOK, "error_alert.html", gin.H{
+			"Error": "Daily extraction quota exceeded. Please try again tomorrow.",
+		})
+		return
+	}
+
+	// If not aborted, forward the headers and flush the buffered body
+	for k, vv := range blw.headers {
+		for _, v := range vv {
+			realWriter.Header().Add(k, v)
+		}
+	}
+	if blw.status != http.StatusOK {
+		realWriter.WriteHeader(blw.status)
+	}
+	if blw.body.Len() > 0 {
+		_, _ = realWriter.Write(blw.body.Bytes())
 	}
 }
 

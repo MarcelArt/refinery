@@ -96,8 +96,9 @@ func (r *RateLimiterRepo) GetTodayByUserID(c context.Context, userID any) (entit
 		from rate_limiters rl 
 		where rl.deleted_at isnull
 		and rl.created_at::date = ?
+		and rl.user_id = ?
 		order by count desc
 	`
 
-	return gorm.G[entities.RateLimiter](r.db).Raw(query, today).First(c)
+	return gorm.G[entities.RateLimiter](r.db).Raw(query, today, userID).First(c)
 }
