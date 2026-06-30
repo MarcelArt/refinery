@@ -26,6 +26,7 @@ type IUserService interface {
 	GetPermissions(userID any) ([]string, error)
 	GetRoles(id any) ([]models.UserRole, error)
 	SendEmailVerification(c *gin.Context, id uint, input models.UserInput) error
+	Verify(c context.Context, id any) error
 }
 
 type UserService struct {
@@ -382,4 +383,11 @@ func (s *UserService) SendEmailVerification(c *gin.Context, id uint, input model
 	}
 
 	return s.mRepo.SendMail(mail)
+}
+
+func (s *UserService) Verify(c context.Context, id any) error {
+	input := models.UserInput{
+		VerifiedAt: new(time.Now()),
+	}
+	return s.repo.Update(c, id, input)
 }
