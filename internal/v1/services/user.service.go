@@ -315,7 +315,7 @@ func (s *UserService) SendEmailVerification(c *gin.Context, id uint, input model
 					<div class="content">
 						<!-- Brand Token Identifier -->
 						<div class="logo-container">
-							<div class="logo-icon">&lt;&gt;</div>
+							<div class="logo-icon">R</div>
 						</div>
 
 						<h1>Verify identity</h1>
