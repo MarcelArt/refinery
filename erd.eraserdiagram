@@ -5,6 +5,8 @@ users [icon: user, color: blue] {
   username string
   email string
   password string
+  verified_at timestampz null
+  daily_limit uint
 }
 
 workflows {
@@ -57,3 +59,12 @@ extraction_results.workflow_id > workflows.id
 api_keys.user_id > users.id
 
 webhooks.workflow_id > workflows.id
+
+// rate limiter
+rate_limiters {
+    id uint pk
+    count uint
+    user_id uint fk
+}
+rate_limiters.user_id > users.id
+// end of rate limiter

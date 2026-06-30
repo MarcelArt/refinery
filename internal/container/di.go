@@ -25,6 +25,7 @@ func New() *dig.Container {
 	c.Provide(repositories.NewExtractionResultRepo, dig.As(new(repositories.IExtractionResultRepo)))
 	c.Provide(repositories.NewApiKeyRepo, dig.As(new(repositories.IApiKeyRepo)))
 	c.Provide(repositories.NewWebhookRepo, dig.As(new(repositories.IWebhookRepo)))
+	c.Provide(repositories.NewRateLimiterRepo, dig.As(new(repositories.IRateLimiterRepo)))
 	c.Provide(repositories.NewR2Repo, dig.As(new(common.IS3Repo)))
 	c.Provide(repositories.NewMailRepo)
 
@@ -35,8 +36,10 @@ func New() *dig.Container {
 	c.Provide(services.NewApiKeyService, dig.As(new(services.IApiKeyService)))
 	c.Provide(services.NewWebhookService, dig.As(new(services.IWebhookService)))
 	c.Provide(services.NewDashboardService)
+	c.Provide(services.NewRateLimiterService, dig.As(new(services.IRateLimiterService)))
 
 	c.Provide(middlewares.NewAuthMiddleware)
+	c.Provide(middlewares.NewRateLimiterMiddleware)
 
 	c.Provide(handlers.NewUserHandler)
 	c.Provide(handlers.NewWorkflowHandler)
@@ -44,6 +47,7 @@ func New() *dig.Container {
 	c.Provide(handlers.NewApiKeyHandler)
 	c.Provide(handlers.NewWebhookHandler)
 	c.Provide(handlers.NewDashboardHandler)
+	c.Provide(handlers.NewRateLimiterHandler)
 
 	// Web components
 	c.Provide(webroutes.NewWebAuthMiddleware)

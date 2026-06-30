@@ -12,4 +12,5 @@ type User struct {
 	Email      string     `gorm:"not null;unique" json:"email"`
 	Password   string     `json:"-" mapper:"password"`
 	VerifiedAt *time.Time `json:"verifiedAt" mapper:"verifiedAt"`
+	DailyLimit uint       `gorm:"default:10" json:"dailyLimit"`
 }

@@ -18,19 +18,21 @@ import (
 )
 
 type App struct {
-	uHandler  *handlers.UserHandler
-	wHandler  *handlers.WorkflowHandler
-	erHandler *handlers.ExtractionResultHandler
-	akHandler *handlers.ApiKeyHandler
-	whHandler *handlers.WebhookHandler
-	dHandler  *handlers.DashboardHandler
-	authM     *middlewares.AuthMiddleware
-	webAuthM  *webroutes.WebAuthMiddleware
-	authWebH  *webhandlers.AuthWebHandler
-	wfWebH    *webhandlers.WorkflowWebHandler
-	erWebH    *webhandlers.ExtractionResultWebHandler
-	akWebH    *webhandlers.ApiKeyWebHandler
-	whWebH    *webhandlers.WebhookWebHandler
+	uHandler   *handlers.UserHandler
+	wHandler   *handlers.WorkflowHandler
+	erHandler  *handlers.ExtractionResultHandler
+	akHandler  *handlers.ApiKeyHandler
+	whHandler  *handlers.WebhookHandler
+	dHandler   *handlers.DashboardHandler
+	rlHandler  *handlers.RateLimiterHandler
+	authM      *middlewares.AuthMiddleware
+	rateLimitM *middlewares.RateLimiterMiddleware
+	webAuthM   *webroutes.WebAuthMiddleware
+	authWebH   *webhandlers.AuthWebHandler
+	wfWebH     *webhandlers.WorkflowWebHandler
+	erWebH     *webhandlers.ExtractionResultWebHandler
+	akWebH     *webhandlers.ApiKeyWebHandler
+	whWebH     *webhandlers.WebhookWebHandler
 }
 
 func New(
@@ -40,7 +42,9 @@ func New(
 	akHandler *handlers.ApiKeyHandler,
 	whHandler *handlers.WebhookHandler,
 	dHandler *handlers.DashboardHandler,
+	rlHandler *handlers.RateLimiterHandler,
 	authM *middlewares.AuthMiddleware,
+	rateLimitM *middlewares.RateLimiterMiddleware,
 	webAuthM *webroutes.WebAuthMiddleware,
 	authWebH *webhandlers.AuthWebHandler,
 	wfWebH *webhandlers.WorkflowWebHandler,
@@ -49,19 +53,21 @@ func New(
 	whWebH *webhandlers.WebhookWebHandler,
 ) *App {
 	return &App{
-		uHandler:  uHandler,
-		wHandler:  wHandler,
-		erHandler: erHandler,
-		akHandler: akHandler,
-		whHandler: whHandler,
-		dHandler:  dHandler,
-		authM:     authM,
-		webAuthM:  webAuthM,
-		authWebH:  authWebH,
-		wfWebH:    wfWebH,
-		erWebH:    erWebH,
-		akWebH:    akWebH,
-		whWebH:    whWebH,
+		uHandler:   uHandler,
+		wHandler:   wHandler,
+		erHandler:  erHandler,
+		akHandler:  akHandler,
+		whHandler:  whHandler,
+		dHandler:   dHandler,
+		rlHandler:  rlHandler,
+		authM:      authM,
+		rateLimitM: rateLimitM,
+		webAuthM:   webAuthM,
+		authWebH:   authWebH,
+		wfWebH:     wfWebH,
+		erWebH:     erWebH,
+		akWebH:     akWebH,
+		whWebH:     whWebH,
 	}
 }
 
@@ -84,7 +90,7 @@ func (a *App) Run() error {
 	r.GET("/licenses.txt", handleLicenses("THIRD_PARTY_LICENSES"))
 
 	api := r.Group("/api")
-	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM, a.whHandler, a.dHandler)
+	routes.SetupRoutes(api, a.uHandler, a.wHandler, a.erHandler, a.akHandler, a.authM, a.rateLimitM, a.whHandler, a.dHandler, a.rlHandler)
 
 	webroutes.SetupWebRoutes(r, a.webAuthM, a.authWebH, a.wfWebH, a.erWebH, a.akWebH, a.whWebH)
 

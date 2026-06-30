@@ -25,6 +25,11 @@ const (
 	PermWebhooksDelete = "webhooks#delete"
 
 	PermDashboardRead = "dashboard#read"
+
+	PermRateLimitersCreate = "rateLimiters#create"
+	PermRateLimitersRead   = "rateLimiters#read"
+	PermRateLimitersUpdate = "rateLimiters#update"
+	PermRateLimitersDelete = "rateLimiters#delete"
 )
 
 var AvailablePerms = []string{
@@ -52,4 +57,9 @@ var AvailablePerms = []string{
 	PermWebhooksDelete,
 
 	PermDashboardRead,
+
+	PermRateLimitersCreate,
+	PermRateLimitersRead,
+	PermRateLimitersUpdate,
+	PermRateLimitersDelete,
 }
