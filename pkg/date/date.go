@@ -33,6 +33,11 @@ func Local() Date {
 	return Date{now}
 }
 
+func UTC() Date {
+	now := time.Now().UTC()
+	return Date{now}
+}
+
 // Formats is ...
 func (g Date) Formats(format string) string {
 	format = formatPattern(format)
