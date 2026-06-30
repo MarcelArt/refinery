@@ -16,7 +16,7 @@ var dsn string
 func ConnectDB() *gorm.DB {
 	p := Env.DBPort
 	port, err := strconv.ParseUint(p, 10, 32)
-	dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s search_path=%s sslmode=disable", Env.DBHost, port, Env.DBUser, Env.DBPassword, Env.DBName, Env.DBSchema)
+	dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s search_path=%s sslmode=disable TimeZone=Asia/Jakarta", Env.DBHost, port, Env.DBUser, Env.DBPassword, Env.DBName, Env.DBSchema)
 
 	if err != nil {
 		panic("failed to parse database port")
@@ -49,6 +49,7 @@ func MigrateDB() error {
 		entities.ExtractionResult{},
 		entities.ApiKey{},
 		entities.Webhook{},
+		entities.RateLimiter{},
 	// entities.Role{},
 	// entities.UserRole{},
 	)
@@ -65,6 +66,7 @@ func DropDB() error {
 	err := db.Migrator().DropTable(
 		// entities.UserRole{},
 		// entities.Role{},
+		entities.RateLimiter{},
 		entities.Webhook{},
 		entities.ApiKey{},
 		entities.ExtractionResult{},

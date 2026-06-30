@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func setupWorkflowRoutes(v1 *gin.RouterGroup, authM *middlewares.AuthMiddleware, h *handlers.WorkflowHandler) {
+func setupWorkflowRoutes(v1 *gin.RouterGroup, authM *middlewares.AuthMiddleware, h *handlers.WorkflowHandler, rateLimitM *middlewares.RateLimiterMiddleware) {
 	workflows := v1.Group("/workflows", authM.Authn)
 
 	workflows.POST("/", authM.Authz(enums.PermWorkflowsCreate), h.Create)
-	workflows.POST("/:id/upload", authM.Authz(enums.PermWorkflowsUpload), h.Upload)
+	workflows.POST("/:id/upload", authM.Authz(enums.PermWorkflowsUpload), rateLimitM.Limit, h.Upload)
 
 	workflows.GET("/", authM.Authz(enums.PermWorkflowsRead), h.Read)
 	workflows.GET("/:id", authM.Authz(enums.PermWorkflowsRead), h.GetByID)

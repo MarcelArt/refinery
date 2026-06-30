@@ -7,6 +7,7 @@ import (
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/v1/models"
+	"github.com/devfeel/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/morkid/paginate"
 	"gorm.io/gorm"
@@ -37,12 +38,11 @@ func NewWorkflowRepo(db *gorm.DB) *WorkflowRepo {
 }
 
 func (r *WorkflowRepo) Create(c context.Context, input models.WorkflowInput) (uint, error) {
-	workflow, err := common.Cast[entities.Workflow](input)
-	if err != nil {
-		return 0, fmt.Errorf("cannot cast input: %w", err)
+	var workflow entities.Workflow
+	if err := mapper.AutoMapper(&input, &workflow); err != nil {
+		return 0, fmt.Errorf("cannot map input: %w", err)
 	}
-
-	err = gorm.G[entities.Workflow](r.db).Create(c, &workflow)
+	err := gorm.G[entities.Workflow](r.db).Create(c, &workflow)
 
 	return workflow.ID, err
 }
@@ -60,12 +60,12 @@ func (r *WorkflowRepo) Read(c *gin.Context) (paginate.Page, []models.WorkflowPag
 }
 
 func (r *WorkflowRepo) Update(c context.Context, id any, input models.WorkflowInput) error {
-	workflow, err := common.Cast[entities.Workflow](input)
-	if err != nil {
-		return fmt.Errorf("cannot cast input: %w", err)
+	var workflow entities.Workflow
+	if err := mapper.AutoMapper(&input, &workflow); err != nil {
+		return fmt.Errorf("cannot map input: %w", err)
 	}
 
-	_, err = gorm.G[entities.Workflow](r.db).Where("id = ?", id).Updates(c, workflow)
+	_, err := gorm.G[entities.Workflow](r.db).Where("id = ?", id).Updates(c, workflow)
 
 	return err
 }

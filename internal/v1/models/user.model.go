@@ -14,6 +14,7 @@ type UserInput struct {
 	Email      string     `gorm:"not null;unique" json:"email"`
 	Password   string     `gorm:"not null" json:"password" mapper:"password"`
 	VerifiedAt *time.Time `json:"-" mapper:"verifiedAt"`
+	DailyLimit uint       `gorm:"default:10" json:"dailyLimit"`
 }
 
 // UserInput end
@@ -23,6 +24,7 @@ type UserPage struct {
 	Username   string     `gorm:"not null;unique" json:"username"`
 	Email      string     `gorm:"not null;unique" json:"email"`
 	VerifiedAt *time.Time `json:"verifiedAt"`
+	DailyLimit uint       `gorm:"default:10" json:"dailyLimit"`
 	// Roles    jsonb.JSONB[[]string] `json:"roles"`
 }
 

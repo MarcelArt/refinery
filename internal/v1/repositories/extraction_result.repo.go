@@ -7,6 +7,7 @@ import (
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/v1/models"
+	"github.com/devfeel/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/morkid/paginate"
 	"gorm.io/gorm"
@@ -40,12 +41,12 @@ func NewExtractionResultRepo(db *gorm.DB) *ExtractionResultRepo {
 }
 
 func (r *ExtractionResultRepo) Create(c context.Context, input models.ExtractionResultInput) (uint, error) {
-	extractionResult, err := common.Cast[entities.ExtractionResult](input)
-	if err != nil {
-		return 0, fmt.Errorf("cannot cast input: %w", err)
+	var extractionResult entities.ExtractionResult
+	if err := mapper.AutoMapper(&input, &extractionResult); err != nil {
+		return 0, fmt.Errorf("cannot map input: %w", err)
 	}
 
-	err = gorm.G[entities.ExtractionResult](r.db).Create(c, &extractionResult)
+	err := gorm.G[entities.ExtractionResult](r.db).Create(c, &extractionResult)
 
 	return extractionResult.ID, err
 }
@@ -63,12 +64,12 @@ func (r *ExtractionResultRepo) Read(c *gin.Context) (paginate.Page, []models.Ext
 }
 
 func (r *ExtractionResultRepo) Update(c context.Context, id any, input models.ExtractionResultInput) error {
-	extractionResult, err := common.Cast[entities.ExtractionResult](input)
-	if err != nil {
-		return fmt.Errorf("cannot cast input: %w", err)
+	var extractionResult entities.ExtractionResult
+	if err := mapper.AutoMapper(&input, &extractionResult); err != nil {
+		return fmt.Errorf("cannot map input: %w", err)
 	}
 
-	_, err = gorm.G[entities.ExtractionResult](r.db).Where("id = ?", id).Updates(c, extractionResult)
+	_, err := gorm.G[entities.ExtractionResult](r.db).Where("id = ?", id).Updates(c, extractionResult)
 
 	return err
 }
