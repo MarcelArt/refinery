@@ -7,6 +7,7 @@ import (
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/v1/models"
+	"github.com/devfeel/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/morkid/paginate"
 	"gorm.io/gorm"
@@ -38,12 +39,12 @@ func NewWebhookRepo(db *gorm.DB) *WebhookRepo {
 }
 
 func (r *WebhookRepo) Create(c context.Context, input models.WebhookInput) (uint, error) {
-	webhook, err := common.Cast[entities.Webhook](input)
-	if err != nil {
-		return 0, fmt.Errorf("cannot cast input: %w", err)
+	var webhook entities.Webhook
+	if err := mapper.AutoMapper(&input, &webhook); err != nil {
+		return 0, fmt.Errorf("cannot map input: %w", err)
 	}
 
-	err = gorm.G[entities.Webhook](r.db).Create(c, &webhook)
+	err := gorm.G[entities.Webhook](r.db).Create(c, &webhook)
 
 	return webhook.ID, err
 }
@@ -80,12 +81,12 @@ func (r *WebhookRepo) GetByWorkflowID(c *gin.Context, workflowID any) (paginate.
 }
 
 func (r *WebhookRepo) Update(c context.Context, id any, input models.WebhookInput) error {
-	webhook, err := common.Cast[entities.Webhook](input)
-	if err != nil {
-		return fmt.Errorf("cannot cast input: %w", err)
+	var webhook entities.Webhook
+	if err := mapper.AutoMapper(&input, &webhook); err != nil {
+		return fmt.Errorf("cannot map input: %w", err)
 	}
 
-	_, err = gorm.G[entities.Webhook](r.db).Where("id = ?", id).Updates(c, webhook)
+	_, err := gorm.G[entities.Webhook](r.db).Where("id = ?", id).Updates(c, webhook)
 
 	return err
 }

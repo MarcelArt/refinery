@@ -7,6 +7,7 @@ import (
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/v1/models"
+	"github.com/devfeel/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/morkid/paginate"
 	"gorm.io/gorm"
@@ -38,12 +39,12 @@ func NewApiKeyRepo(db *gorm.DB) *ApiKeyRepo {
 }
 
 func (r *ApiKeyRepo) Create(c context.Context, input models.ApiKeyInput) (uint, error) {
-	apiKey, err := common.Cast[entities.ApiKey](input)
-	if err != nil {
-		return 0, fmt.Errorf("cannot cast input: %w", err)
+	var apiKey entities.ApiKey
+	if err := mapper.AutoMapper(&input, &apiKey); err != nil {
+		return 0, fmt.Errorf("cannot map input: %w", err)
 	}
 
-	err = gorm.G[entities.ApiKey](r.db).Create(c, &apiKey)
+	err := gorm.G[entities.ApiKey](r.db).Create(c, &apiKey)
 
 	return apiKey.ID, err
 }
@@ -61,12 +62,12 @@ func (r *ApiKeyRepo) Read(c *gin.Context) (paginate.Page, []models.ApiKeyPage) {
 }
 
 func (r *ApiKeyRepo) Update(c context.Context, id any, input models.ApiKeyInput) error {
-	apiKey, err := common.Cast[entities.ApiKey](input)
-	if err != nil {
-		return fmt.Errorf("cannot cast input: %w", err)
+	var apiKey entities.ApiKey
+	if err := mapper.AutoMapper(&input, &apiKey); err != nil {
+		return fmt.Errorf("cannot map input: %w", err)
 	}
 
-	_, err = gorm.G[entities.ApiKey](r.db).Where("id = ?", id).Updates(c, apiKey)
+	_, err := gorm.G[entities.ApiKey](r.db).Where("id = ?", id).Updates(c, apiKey)
 
 	return err
 }
