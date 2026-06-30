@@ -28,6 +28,11 @@ func Now() Date {
 	return Date{now}
 }
 
+func Local() Date {
+	now := time.Now().Local()
+	return Date{now}
+}
+
 // Formats is ...
 func (g Date) Formats(format string) string {
 	format = formatPattern(format)
