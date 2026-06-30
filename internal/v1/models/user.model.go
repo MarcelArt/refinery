@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 )
@@ -8,17 +10,19 @@ import (
 // UserInput
 type UserInput struct {
 	common.InputModel
-	Username string `gorm:"not null;unique" json:"username"`
-	Email    string `gorm:"not null;unique" json:"email"`
-	Password string `gorm:"not null" json:"password"`
+	Username   string     `gorm:"not null;unique" json:"username"`
+	Email      string     `gorm:"not null;unique" json:"email"`
+	Password   string     `gorm:"not null" json:"password" mapper:"password"`
+	VerifiedAt *time.Time `json:"-" mapper:"verifiedAt"`
 }
 
 // UserInput end
 
 type UserPage struct {
-	ID       uint   `json:"ID"`
-	Username string `gorm:"not null;unique" json:"username"`
-	Email    string `gorm:"not null;unique" json:"email"`
+	ID         uint       `json:"ID"`
+	Username   string     `gorm:"not null;unique" json:"username"`
+	Email      string     `gorm:"not null;unique" json:"email"`
+	VerifiedAt *time.Time `json:"verifiedAt"`
 	// Roles    jsonb.JSONB[[]string] `json:"roles"`
 }
 

@@ -3,6 +3,7 @@ package configs
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/joho/godotenv"
@@ -28,6 +29,11 @@ type env struct {
 	R2Token         string
 	R2PublicDomain  string
 	R2Bucket        string
+	SMTPHost        string
+	SMTPPort        int
+	SMTPName        string
+	SMTPEmail       string
+	SMTPPassword    string
 }
 
 var Env *env
@@ -39,6 +45,11 @@ func SetupENV() {
 	}
 
 	defaultPassword, _ := argon2id.CreateHash(os.Getenv("DEFAULT_PASSWORD"), argon2id.DefaultParams)
+
+	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		smtpPort = 587
+	}
 
 	Env = &env{
 		PORT:            os.Getenv("PORT"),
@@ -60,5 +71,10 @@ func SetupENV() {
 		R2Token:         os.Getenv("R2_TOKEN"),
 		R2PublicDomain:  os.Getenv("R2_PUBLIC_DOMAIN"),
 		R2Bucket:        os.Getenv("R2_BUCKET"),
+		SMTPHost:        os.Getenv("SMTP_HOST"),
+		SMTPPort:        smtpPort,
+		SMTPName:        os.Getenv("SMTP_NAME"),
+		SMTPEmail:       os.Getenv("SMTP_EMAIL"),
+		SMTPPassword:    os.Getenv("SMTP_PASSWORD"),
 	}
 }

@@ -14,5 +14,7 @@ func setupAuthRoutes(r *gin.Engine, authM *WebAuthMiddleware, h *handlers.AuthWe
 	r.GET("/register", authM.RedirectIfAuthenticated(), h.ShowRegister)
 	r.POST("/register", authM.RedirectIfAuthenticated(), h.HandleRegister)
 	
+	r.GET("/verify", h.HandleVerifyEmail)
+	
 	r.GET("/logout", h.HandleLogout)
 }

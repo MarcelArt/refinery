@@ -49,6 +49,11 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 
+	if err := h.service.SendEmailVerification(c, id, user); err != nil {
+		c.JSON(common.ResultErr(err, "failed sending email verification"))
+		return
+	}
+
 	c.JSON(http.StatusCreated, common.ResultOk(id, "User created"))
 }
 
