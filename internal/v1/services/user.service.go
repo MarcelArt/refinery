@@ -50,6 +50,10 @@ func NewUserService(
 }
 
 func (s *UserService) Create(c context.Context, input models.UserInput) (uint, error) {
+	if err := common.CheckEmails(input.Email); err != nil {
+		return 0, fmt.Errorf("invalid email: %w", err)
+	}
+
 	password, err := argon2id.CreateHash(input.Password, argon2id.DefaultParams)
 	if err != nil {
 		return 0, fmt.Errorf("failed to hash password: %w", err)
