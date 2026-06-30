@@ -26,6 +26,7 @@ func New() *dig.Container {
 	c.Provide(repositories.NewApiKeyRepo, dig.As(new(repositories.IApiKeyRepo)))
 	c.Provide(repositories.NewWebhookRepo, dig.As(new(repositories.IWebhookRepo)))
 	c.Provide(repositories.NewR2Repo, dig.As(new(common.IS3Repo)))
+	c.Provide(repositories.NewMailRepo)
 
 	c.Provide(services.NewN8NService, dig.As(new(services.IN8NService)))
 	c.Provide(services.NewUserService, dig.As(new(services.IUserService)))

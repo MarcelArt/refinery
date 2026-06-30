@@ -8,6 +8,7 @@ import (
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/entities"
 	"github.com/MarcelArt/refinery/internal/v1/models"
+	"github.com/devfeel/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/morkid/paginate"
 	"gorm.io/gorm"
@@ -55,13 +56,12 @@ func NewUserRepo(db *gorm.DB) *UserRepo {
 }
 
 func (r *UserRepo) Create(c context.Context, input models.UserInput) (uint, error) {
-	user, err := common.Cast[entities.User](input)
-	if err != nil {
-		return 0, fmt.Errorf("cannot cast input: %w", err)
+	var user entities.User
+	if err := mapper.AutoMapper(&input, &user); err != nil {
+		return 0, fmt.Errorf("cannot map input: %w", err)
 	}
-	user.Password = input.Password
 
-	err = gorm.G[entities.User](r.db).Create(c, &user)
+	err := gorm.G[entities.User](r.db).Create(c, &user)
 
 	return user.ID, err
 }
@@ -79,13 +79,12 @@ func (r *UserRepo) Read(c *gin.Context) (paginate.Page, []models.UserPage) {
 }
 
 func (r *UserRepo) Update(c context.Context, id any, input models.UserInput) error {
-	user, err := common.Cast[entities.User](input)
-	if err != nil {
-		return fmt.Errorf("cannot cast input: %w", err)
+	var user entities.User
+	if err := mapper.AutoMapper(&input, &user); err != nil {
+		return fmt.Errorf("cannot map input: %w", err)
 	}
-	user.Password = input.Password
 
-	_, err = gorm.G[entities.User](r.db).Where("id = ?", id).Updates(c, user)
+	_, err := gorm.G[entities.User](r.db).Where("id = ?", id).Updates(c, user)
 
 	return err
 }
