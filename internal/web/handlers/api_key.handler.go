@@ -14,17 +14,20 @@ import (
 )
 
 type ApiKeyWebHandler struct {
-	apiKeyService services.IApiKeyService
-	userService   services.IUserService
+	apiKeyService      services.IApiKeyService
+	userService        services.IUserService
+	rateLimiterService services.IRateLimiterService
 }
 
 func NewApiKeyWebHandler(
 	apiKeyService services.IApiKeyService,
 	userService services.IUserService,
+	rateLimiterService services.IRateLimiterService,
 ) *ApiKeyWebHandler {
 	return &ApiKeyWebHandler{
-		apiKeyService: apiKeyService,
-		userService:   userService,
+		apiKeyService:      apiKeyService,
+		userService:        userService,
+		rateLimiterService: rateLimiterService,
 	}
 }
 
@@ -182,6 +185,13 @@ func (h *ApiKeyWebHandler) renderListWithExtra(c *gin.Context, extra gin.H) {
 		return
 	}
 
+	// Retrieve daily rate limit usage count
+	var usageCount uint
+	rateLimit, err := h.rateLimiterService.GetTodayByUserID(c, userId)
+	if err == nil {
+		usageCount = rateLimit.Count
+	}
+
 	pageInfo, pages := h.apiKeyService.GetByUserID(c, userId)
 
 	apiKeysVM := make([]viewmodels.ApiKeyRowViewModel, 0, len(pages))
@@ -215,6 +225,14 @@ func (h *ApiKeyWebHandler) renderListWithExtra(c *gin.Context, extra gin.H) {
 		End:        end,
 	}
 
+	var usagePercent uint
+	if user.DailyLimit > 0 {
+		usagePercent = (usageCount * 100) / user.DailyLimit
+		if usagePercent > 100 {
+			usagePercent = 100
+		}
+	}
+
 	data := gin.H{
 		"Title":          "Account Settings",
 		"User":           user,
@@ -222,6 +240,9 @@ func (h *ApiKeyWebHandler) renderListWithExtra(c *gin.Context, extra gin.H) {
 		"Pagination":     paginationVM,
 		"AvailablePerms": enums.AvailablePerms,
 		"ActiveMenu":     "account",
+		"UsageCount":     usageCount,
+		"DailyLimit":     user.DailyLimit,
+		"UsagePercent":   usagePercent,
 	}
 
 	for k, v := range extra {
