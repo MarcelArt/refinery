@@ -74,111 +74,7 @@
     }
 </style>
 
-<!-- Chart Init Helper registered before Alpine DOM setup -->
-<script>
-    function initThroughputChart(dataPoints) {
-        const canvas = document.getElementById('throughputChart');
-        if (!canvas) return;
-        
-        if (!dataPoints || dataPoints.length === 0) {
-            const container = canvas.parentElement;
-            canvas.remove();
-            container.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--text-muted);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px; opacity: 0.5;"><rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="2" y="13" width="4" height="8" rx="1"/></svg>
-                    <div style="font-size: 13px;">No extraction activity in the last 14 days</div>
-                </div>
-            `;
-            return;
-        }
 
-        const labels = dataPoints.map(p => {
-            const d = new Date(p.Bucket);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-        });
-        const doneData = dataPoints.map(p => p.Done);
-        const failedData = dataPoints.map(p => p.Failed);
-        const inProgressData = dataPoints.map(p => p.InProgress);
-
-        const render = () => {
-            new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Completed',
-                            data: doneData,
-                            backgroundColor: '#10b981',
-                            borderRadius: 2,
-                        },
-                        {
-                            label: 'Failed',
-                            data: failedData,
-                            backgroundColor: '#f43f5e',
-                            borderRadius: 2,
-                        },
-                        {
-                            label: 'In Progress',
-                            data: inProgressData,
-                            backgroundColor: '#f59e0b',
-                            borderRadius: 2,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#94a3b8',
-                                boxWidth: 10,
-                                padding: 12,
-                                font: { family: 'Plus Jakarta Sans', size: 10 }
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: '#101626',
-                            titleColor: '#f8fafc',
-                            bodyColor: '#94a3b8',
-                            borderColor: '#202b48',
-                            borderWidth: 1,
-                            titleFont: { family: 'Plus Jakarta Sans', weight: '600' },
-                            bodyFont: { family: 'Plus Jakarta Sans' }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: { display: false },
-                            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 9 } }
-                        },
-                        y: {
-                            stacked: true,
-                            grid: { color: '#202b48' },
-                            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 9 }, precision: 0 }
-                        }
-                    }
-                }
-            });
-        };
-
-        if (window.Chart) {
-            render();
-        } else {
-            let checkInterval = setInterval(() => {
-                if (window.Chart) {
-                    clearInterval(checkInterval);
-                    render();
-                }
-            }, 50);
-        }
-    }
-</script>
 
 <div class="dashboard-wrapper" x-init="$dispatch('set-active-menu', 'dashboard')" style="width: 100%; padding-bottom: 40px; min-width: 0; max-width: 100%;">
     
@@ -272,15 +168,120 @@
     </div>
 
     <!-- Middle Row: Extraction Throughput Chart (Full Width) -->
-    <div class="form-card" style="padding: 20px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; min-width: 0; margin-bottom: 24px;"
-         x-data="{}"
-         x-init="initThroughputChart({{ .ThroughputJSON }})">
+    <div class="form-card" style="padding: 20px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; min-width: 0; margin-bottom: 24px;">
         <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 4px 0;">Extraction Throughput</h2>
         <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 16px 0;">Volume of documents processed over the last 14 days</p>
         
         <div style="flex: 1; min-height: 200px; position: relative;">
             <canvas id="throughputChart" style="max-height: 220px; width: 100%;"></canvas>
         </div>
+        
+        <script>
+            (function() {
+                const dataPoints = {{ .ThroughputJSON }};
+                
+                function renderChart() {
+                    const canvas = document.getElementById('throughputChart');
+                    if (!canvas) return;
+                    
+                    if (!dataPoints || dataPoints.length === 0) {
+                        const container = canvas.parentElement;
+                        canvas.remove();
+                        container.innerHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--text-muted);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px; opacity: 0.5;"><rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="2" y="13" width="4" height="8" rx="1"/></svg>
+                                <div style="font-size: 13px;">No extraction activity in the last 14 days</div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const labels = dataPoints.map(p => {
+                        const d = new Date(p.bucket);
+                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+                    });
+                    const doneData = dataPoints.map(p => p.done);
+                    const failedData = dataPoints.map(p => p.failed);
+                    const inProgressData = dataPoints.map(p => p.inProgress);
+
+                    new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Completed',
+                                    data: doneData,
+                                    backgroundColor: '#10b981',
+                                    borderRadius: 2,
+                                },
+                                {
+                                    label: 'Failed',
+                                    data: failedData,
+                                    backgroundColor: '#f43f5e',
+                                    borderRadius: 2,
+                                },
+                                {
+                                    label: 'In Progress',
+                                    data: inProgressData,
+                                    backgroundColor: '#f59e0b',
+                                    borderRadius: 2,
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: '#94a3b8',
+                                        boxWidth: 10,
+                                        padding: 12,
+                                        font: { family: 'Plus Jakarta Sans', size: 10 }
+                                    }
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: '#101626',
+                                    titleColor: '#f8fafc',
+                                    bodyColor: '#94a3b8',
+                                    borderColor: '#202b48',
+                                    borderWidth: 1,
+                                    titleFont: { family: 'Plus Jakarta Sans', weight: '600' },
+                                    bodyFont: { family: 'Plus Jakarta Sans' }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    grid: { display: false },
+                                    ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 9 } }
+                                },
+                                y: {
+                                    stacked: true,
+                                    grid: { color: '#202b48' },
+                                    ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 9 }, precision: 0 }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (window.Chart) {
+                    renderChart();
+                } else {
+                    let checkInterval = setInterval(() => {
+                        if (window.Chart) {
+                            clearInterval(checkInterval);
+                            renderChart();
+                        }
+                    }, 50);
+                }
+            })();
+        </script>
     </div>
 
     <!-- Bottom Row: Workflow Breakdown & Recent Extractions Side-by-Side -->
@@ -395,7 +396,4 @@
     </div>
 
 </div>
-
-<!-- Chart JS Loader -->
-<script src="/public/scripts/chart.min.js"></script>
 {{ end }}
