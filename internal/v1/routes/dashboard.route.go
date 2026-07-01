@@ -11,4 +11,5 @@ func setupDashboardRoutes(v1 *gin.RouterGroup, authM *middlewares.AuthMiddleware
 	g := v1.Group("/dashboard", authM.Authn, authM.Authz(enums.PermDashboardRead))
 
 	g.GET("/extraction-counts", h.ExtractionStatusCounts)
+	g.GET("/daily-throughput", h.GetDailyThroughput)
 }

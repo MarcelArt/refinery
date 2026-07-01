@@ -17,6 +17,7 @@ type IExtractionResultRepo interface {
 	common.IBaseCrudRepo[entities.ExtractionResult, models.ExtractionResultInput, models.ExtractionResultPage]
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
 	GetStatusCount(c context.Context, status string, userID any) (float32, error)
+	GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error)
 }
 
 type ExtractionResultRepo struct {
@@ -124,4 +125,34 @@ func (r *ExtractionResultRepo) GetStatusCount(c context.Context, status string, 
 
 	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID, status).Scan(c, &count)
 	return count, err
+}
+
+func (r *ExtractionResultRepo) GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error) {
+	query := `
+		WITH user_results AS (
+			SELECT er.created_at, er.status
+			FROM extraction_results er
+			JOIN workflows w ON er.workflow_id = w.id
+			WHERE er.deleted_at IS NULL
+			AND w.user_id = ?
+		)
+		SELECT
+			d.day AS bucket,
+			COUNT(ur.created_at) FILTER (WHERE ur.status = 'DONE')        AS done,
+			COUNT(ur.created_at) FILTER (WHERE ur.status = 'FAILED')      AS failed,
+			COUNT(ur.created_at) FILTER (WHERE ur.status = 'IN_PROGRESS') AS in_progress
+		FROM generate_series(
+			date_trunc('day', now() - interval '13 days'),
+			date_trunc('day', now()),
+			interval '1 day'
+		) AS d(day)
+		LEFT JOIN user_results ur
+			ON date_trunc('day', ur.created_at) = d.day
+		GROUP BY d.day
+		ORDER BY d.day
+	`
+
+	var throughputPoints []models.ThroughputPoint
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &throughputPoints)
+	return throughputPoints, err
 }

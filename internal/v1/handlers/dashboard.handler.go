@@ -42,3 +42,27 @@ func (h *DashboardHandler) ExtractionStatusCounts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, common.ResultOk(counts, "Extraction status counted"))
 }
+
+// GetDailyThroughput godoc
+// @Summary      Get daily throughput
+// @Description  Get daily throughput points (bucket, done, failed, in progress counts) for the authenticated user
+// @Tags         dashboard
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  common.Result[[]models.ThroughputPoint]
+// @Failure      401  {object}  common.Result[string]
+// @Failure      403  {object}  common.Result[string]
+// @Failure      500  {object}  common.Result[string]
+// @Security     BearerAuth
+// @Security     ApiKey
+// @Router       /v1/dashboard/daily-throughput [get]
+func (h *DashboardHandler) GetDailyThroughput(c *gin.Context) {
+	userID := c.MustGet("userId")
+	throughputPoints, err := h.service.GetDailyThroughput(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(common.ResultErr(err, "failed getting daily throughput"))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.ResultOk(throughputPoints, "Daily throughput retrieved"))
+}
