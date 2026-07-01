@@ -41,3 +41,7 @@ func (s *DashboardService) ExtractionStatusCounts(c context.Context, userID any)
 func (s *DashboardService) GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error) {
 	return s.erRepo.GetDailyThroughput(c, userID)
 }
+
+func (s *DashboardService) GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error) {
+	return s.erRepo.GetLatencyStats(c, userID)
+}

@@ -18,6 +18,7 @@ type IExtractionResultRepo interface {
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
 	GetStatusCount(c context.Context, status string, userID any) (float32, error)
 	GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error)
+	GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error)
 }
 
 type ExtractionResultRepo struct {
@@ -155,4 +156,28 @@ func (r *ExtractionResultRepo) GetDailyThroughput(c context.Context, userID any)
 	var throughputPoints []models.ThroughputPoint
 	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &throughputPoints)
 	return throughputPoints, err
+}
+
+func (r *ExtractionResultRepo) GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error) {
+	query := `
+		WITH latencies AS (
+			SELECT EXTRACT(EPOCH FROM (er.finished_at - er.created_at)) AS seconds
+			FROM extraction_results er
+			JOIN workflows w ON er.workflow_id = w.id
+			WHERE er.deleted_at IS NULL
+			AND w.user_id = ?
+			AND er.finished_at IS NOT NULL
+			AND er.created_at >= date_trunc('day', now() - interval '29 days')
+		)
+		SELECT
+			COUNT(*)                                                       AS completed,
+			AVG(seconds)                                                   AS avg_seconds,
+			percentile_cont(0.5)  WITHIN GROUP (ORDER BY seconds)          AS p50_seconds,
+			percentile_cont(0.95) WITHIN GROUP (ORDER BY seconds)          AS p95_seconds
+		FROM latencies
+	`
+
+	var latencyStats models.LatencyStats
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &latencyStats)
+	return latencyStats, err
 }

@@ -14,3 +14,10 @@ type ThroughputPoint struct {
 	Failed     int64     `json:"failed"`
 	InProgress int64     `json:"inProgress"`
 }
+
+type LatencyStats struct {
+	Completed  int64    `json:"completed"`
+	AvgSeconds *float64 `json:"avgSeconds"`
+	P50Seconds *float64 `json:"p50Seconds"`
+	P95Seconds *float64 `json:"p95Seconds"`
+}

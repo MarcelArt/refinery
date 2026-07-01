@@ -66,3 +66,27 @@ func (h *DashboardHandler) GetDailyThroughput(c *gin.Context) {
 
 	c.JSON(http.StatusOK, common.ResultOk(throughputPoints, "Daily throughput retrieved"))
 }
+
+// GetLatencyStats godoc
+// @Summary      Get latency stats
+// @Description  Get latency statistics (completed count, average seconds, P50, and P95 latency) for the authenticated user
+// @Tags         dashboard
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  common.Result[models.LatencyStats]
+// @Failure      401  {object}  common.Result[string]
+// @Failure      403  {object}  common.Result[string]
+// @Failure      500  {object}  common.Result[string]
+// @Security     BearerAuth
+// @Security     ApiKey
+// @Router       /v1/dashboard/latency-stats [get]
+func (h *DashboardHandler) GetLatencyStats(c *gin.Context) {
+	userID := c.MustGet("userId")
+	latencyStats, err := h.service.GetLatencyStats(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(common.ResultErr(err, "failed getting latency stats"))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.ResultOk(latencyStats, "Latency stats retrieved"))
+}
