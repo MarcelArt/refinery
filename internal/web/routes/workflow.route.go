@@ -8,7 +8,6 @@ import (
 )
 
 func setupWorkflowRoutes(r *gin.Engine, authM *WebAuthMiddleware, h *handlers.WorkflowWebHandler) {
-	r.GET("/dashboard", authM.RequireAuth(), h.ShowDashboard)
 	r.GET("/workflows", authM.RequireAuth(), h.ShowWorkflows)
 	
 	// Workflow creation routes

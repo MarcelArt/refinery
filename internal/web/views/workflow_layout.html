@@ -1,5 +1,6 @@
 {{ define "content" }}
 <div x-data="{ showUploadModal: false, selectedFile: null, dragOver: false, uploading: false }" 
+     x-init="$dispatch('set-active-menu', 'workflows')"
      @workflow-started.window="showUploadModal = false"
      style="width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
     <!-- Workflow Header -->

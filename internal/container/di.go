@@ -56,6 +56,7 @@ func New() *dig.Container {
 	c.Provide(webhandlers.NewExtractionResultWebHandler)
 	c.Provide(webhandlers.NewApiKeyWebHandler)
 	c.Provide(webhandlers.NewWebhookWebHandler)
+	c.Provide(webhandlers.NewDashboardWebHandler)
 
 	c.Provide(app.New)
 

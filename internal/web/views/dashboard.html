@@ -1,13 +1,401 @@
 {{ define "content" }}
-<header class="page-header">
-    <h1 class="page-title">Dashboard</h1>
-</header>
+<style>
+    .dashboard-bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        width: 100%;
+        align-items: start;
+        margin-bottom: 24px;
+    }
+    @media (min-width: 1200px) {
+        .dashboard-bottom-grid {
+            grid-template-columns: 1.2fr 1fr;
+        }
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        width: fit-content;
+    }
+    .status-done {
+        background-color: rgba(16, 185, 129, 0.08);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+    .status-failed {
+        background-color: rgba(244, 63, 94, 0.08);
+        color: var(--error);
+        border: 1px solid rgba(244, 63, 94, 0.15);
+    }
+    .status-in-progress {
+        background-color: rgba(245, 158, 11, 0.08);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.15);
+        animation: status-pulse 1.8s infinite ease-in-out;
+    }
+    @keyframes status-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    .workflow-type-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        font-family: monospace;
+    }
+    .type-pdf {
+        background-color: rgba(14, 165, 233, 0.08);
+        color: #38bdf8;
+        border: 1px solid rgba(14, 165, 233, 0.15);
+    }
+    .type-picture {
+        background-color: rgba(168, 85, 247, 0.08);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.15);
+    }
+    .dashboard-link {
+        color: var(--text-primary);
+        font-weight: 500;
+        transition: var(--transition-smooth);
+        text-decoration: none;
+    }
+    .dashboard-link:hover {
+        color: var(--accent);
+    }
+</style>
 
-<div class="placeholder-card">
-    <div class="placeholder-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+<!-- Chart Init Helper registered before Alpine DOM setup -->
+<script>
+    function initThroughputChart(dataPoints) {
+        const canvas = document.getElementById('throughputChart');
+        if (!canvas) return;
+        
+        if (!dataPoints || dataPoints.length === 0) {
+            const container = canvas.parentElement;
+            canvas.remove();
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--text-muted);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px; opacity: 0.5;"><rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="2" y="13" width="4" height="8" rx="1"/></svg>
+                    <div style="font-size: 13px;">No extraction activity in the last 14 days</div>
+                </div>
+            `;
+            return;
+        }
+
+        const labels = dataPoints.map(p => {
+            const d = new Date(p.Bucket);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+        });
+        const doneData = dataPoints.map(p => p.Done);
+        const failedData = dataPoints.map(p => p.Failed);
+        const inProgressData = dataPoints.map(p => p.InProgress);
+
+        const render = () => {
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Completed',
+                            data: doneData,
+                            backgroundColor: '#10b981',
+                            borderRadius: 2,
+                        },
+                        {
+                            label: 'Failed',
+                            data: failedData,
+                            backgroundColor: '#f43f5e',
+                            borderRadius: 2,
+                        },
+                        {
+                            label: 'In Progress',
+                            data: inProgressData,
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 2,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#94a3b8',
+                                boxWidth: 10,
+                                padding: 12,
+                                font: { family: 'Plus Jakarta Sans', size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#101626',
+                            titleColor: '#f8fafc',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#202b48',
+                            borderWidth: 1,
+                            titleFont: { family: 'Plus Jakarta Sans', weight: '600' },
+                            bodyFont: { family: 'Plus Jakarta Sans' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false },
+                            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 9 } }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: { color: '#202b48' },
+                            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 9 }, precision: 0 }
+                        }
+                    }
+                }
+            });
+        };
+
+        if (window.Chart) {
+            render();
+        } else {
+            let checkInterval = setInterval(() => {
+                if (window.Chart) {
+                    clearInterval(checkInterval);
+                    render();
+                }
+            }, 50);
+        }
+    }
+</script>
+
+<div class="dashboard-wrapper" x-init="$dispatch('set-active-menu', 'dashboard')" style="width: 100%; padding-bottom: 40px; min-width: 0; max-width: 100%;">
+    
+    <header class="page-header" style="margin-bottom: 20px;">
+        <h1 class="page-title" style="margin: 0;">Dashboard Overview</h1>
+    </header>
+
+    <!-- Unified Row of 6 Compact Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <!-- Completed -->
+        <div class="form-card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <div>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Completed</span>
+                <div style="font-size: 22px; font-weight: 700; color: #10b981; margin-top: 4px; font-family: var(--font-display);">
+                    {{ printf "%.0f" .StatusCounts.Done }}
+                </div>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">Success runs</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: rgba(16, 185, 129, 0.08); display: flex; align-items: center; justify-content: center; color: #10b981; flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+        </div>
+
+        <!-- Failed -->
+        <div class="form-card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <div>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Failed</span>
+                <div style="font-size: 22px; font-weight: 700; color: var(--error); margin-top: 4px; font-family: var(--font-display);">
+                    {{ printf "%.0f" .StatusCounts.Failed }}
+                </div>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">Failed runs</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center; color: var(--error); flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+        </div>
+
+        <!-- Success Rate -->
+        <div class="form-card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <div>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Success Rate</span>
+                <div style="font-size: 22px; font-weight: 700; color: #3b82f6; margin-top: 4px; font-family: var(--font-display);">
+                    {{ if or (gt .StatusCounts.Done 0.0) (gt .StatusCounts.Failed 0.0) }}
+                        {{ printf "%.1f" .StatusCounts.SuccessRate }}%
+                    {{ else }}
+                        —
+                    {{ end }}
+                </div>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">Completed ratio</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: rgba(59, 130, 246, 0.08); display: flex; align-items: center; justify-content: center; color: #3b82f6; flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+        </div>
+
+        <!-- Avg Latency -->
+        <div class="form-card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <div>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Avg Latency</span>
+                <div style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px; font-family: var(--font-display);">{{ .Latency.AvgSeconds }}</div>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">Across {{ .Latency.Completed }} runs</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: rgba(148, 163, 184, 0.08); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+        </div>
+
+        <!-- Median (P50) Latency -->
+        <div class="form-card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <div>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Median (P50)</span>
+                <div style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px; font-family: var(--font-display);">{{ .Latency.P50Seconds }}</div>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">50th percentile</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: rgba(148, 163, 184, 0.08); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h6"/></svg>
+            </div>
+        </div>
+
+        <!-- P95 Latency -->
+        <div class="form-card" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <div>
+                <span style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Tail (P95)</span>
+                <div style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px; font-family: var(--font-display);">{{ .Latency.P95Seconds }}</div>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">95th percentile</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: rgba(148, 163, 184, 0.08); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 8-6-6-6 6"/><path d="M12 2v20"/></svg>
+            </div>
+        </div>
     </div>
-    <h2 class="placeholder-title">Dashboard Overview</h2>
-    <p class="placeholder-desc">Analyze your extraction success rates, document processing volumes, and API integration metrics in real-time.</p>
+
+    <!-- Middle Row: Extraction Throughput Chart (Full Width) -->
+    <div class="form-card" style="padding: 20px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; min-width: 0; margin-bottom: 24px;"
+         x-data="{}"
+         x-init="initThroughputChart({{ .ThroughputJSON }})">
+        <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 4px 0;">Extraction Throughput</h2>
+        <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 16px 0;">Volume of documents processed over the last 14 days</p>
+        
+        <div style="flex: 1; min-height: 200px; position: relative;">
+            <canvas id="throughputChart" style="max-height: 220px; width: 100%;"></canvas>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Workflow Breakdown & Recent Extractions Side-by-Side -->
+    <div class="dashboard-bottom-grid">
+        <!-- Workflow Breakdown Card -->
+        <div class="form-card" style="padding: 20px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 4px 0;">Workflow Breakdown</h2>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 16px 0;">Run volume, success rates, and latency per workflow</p>
+            
+            <div class="table-container" style="margin-top: 0; overflow-x: auto; max-width: 100%;">
+                <table class="data-table" style="table-layout: auto; width: 100%; font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th>Workflow</th>
+                            <th style="width: 1%; white-space: nowrap;">Type</th>
+                            <th style="text-align: right; width: 1%; white-space: nowrap;">Runs</th>
+                            <th style="text-align: right; width: 1%; white-space: nowrap;">Success</th>
+                            <th style="text-align: right; width: 1%; white-space: nowrap;">Avg Latency</th>
+                            <th style="text-align: right; padding-right: 12px; width: 1%; white-space: nowrap;">Last Run</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Breakdown }}
+                        <tr>
+                            <td>
+                                <a href="/workflows/{{ .WorkflowID }}" 
+                                   hx-get="/workflows/{{ .WorkflowID }}" 
+                                   hx-target=".main-wrapper" 
+                                   hx-select=".main-wrapper" 
+                                   hx-swap="outerHTML" 
+                                   hx-push-url="true" 
+                                   class="dashboard-link">
+                                    {{ .WorkflowTitle }}
+                                </a>
+                            </td>
+                            <td style="white-space: nowrap;">
+                                {{ if eq .WorkflowType "PICTURE" }}
+                                <span class="schema-pill" style="background-color: rgba(168, 85, 247, 0.08); color: #c084fc; border-color: rgba(168, 85, 247, 0.15); margin: 0; display: inline-block;">Picture</span>
+                                {{ else }}
+                                <span class="schema-pill" style="background-color: rgba(59, 130, 246, 0.08); color: #60a5fa; border-color: rgba(59, 130, 246, 0.15); margin: 0; display: inline-block;">PDF Text</span>
+                                {{ end }}
+                            </td>
+                            <td style="text-align: right; font-weight: 600; color: var(--text-primary); white-space: nowrap;">{{ .TotalRuns }}</td>
+                            <td style="text-align: right; font-weight: 600; color: #3b82f6; white-space: nowrap;">{{ .SuccessRate }}</td>
+                            <td style="text-align: right; white-space: nowrap;">{{ .AvgLatencySeconds }}</td>
+                            <td style="text-align: right; padding-right: 12px; color: var(--text-secondary); white-space: nowrap;">{{ .LastRunAt }}</td>
+                        </tr>
+                        {{ else }}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px 0;">
+                                No workflows found. Create one to begin.
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Extractions Card -->
+        <div class="form-card" style="padding: 20px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+            <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 4px 0;">Recent Extractions</h2>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 16px 0;">Latest 10 document runs across all workflows</p>
+            
+            <div class="table-container" style="margin-top: 0; overflow-x: auto; max-width: 100%;">
+                <table class="data-table" style="table-layout: auto; width: 100%; font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th>Workflow</th>
+                            <th style="width: 1%; white-space: nowrap;">Status</th>
+                            <th>Source File</th>
+                            <th style="width: 1%; white-space: nowrap;">Started</th>
+                            <th style="text-align: right; padding-right: 12px; width: 1%; white-space: nowrap;">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .RecentActivity }}
+                        <tr>
+                            <td>
+                                <a href="{{ .Route }}" 
+                                   hx-get="{{ .Route }}" 
+                                   hx-target=".main-wrapper" 
+                                   hx-select=".main-wrapper" 
+                                   hx-swap="outerHTML" 
+                                   hx-push-url="true" 
+                                   class="dashboard-link">
+                                    {{ .Workflow }}
+                                </a>
+                            </td>
+                            <td style="white-space: nowrap;">
+                                <span class="status-badge {{ .StatusClass }}" style="font-size: 9px; padding: 2px 6px;">
+                                    {{ .Status }}
+                                </span>
+                            </td>
+                            <td style="font-family: monospace; font-size: 11px; color: var(--text-secondary); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ .Attachment }}">
+                                {{ .Attachment }}
+                            </td>
+                            <td style="color: var(--text-secondary); white-space: nowrap;">{{ .CreatedAt }}</td>
+                            <td style="text-align: right; padding-right: 12px; white-space: nowrap;">{{ .Duration }}</td>
+                        </tr>
+                        {{ else }}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px 0;">
+                                No recent activity found. Run an extraction to begin.
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<!-- Chart JS Loader -->
+<script src="/public/scripts/chart.min.js"></script>
 {{ end }}

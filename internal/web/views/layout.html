@@ -22,7 +22,7 @@
     {{ if .HideLayout }}
         {{ template "content" . }}
     {{ else }}
-        <div class="dashboard-container" x-data="{ sidebarMinimized: false, activeMenu: '{{ .ActiveMenu }}' }" :class="{ 'sidebar-minimized': sidebarMinimized }">
+        <div class="dashboard-container" x-data="{ sidebarMinimized: false, activeMenu: '{{ .ActiveMenu }}' }" :class="{ 'sidebar-minimized': sidebarMinimized }" @set-active-menu.window="activeMenu = $event.detail">
             <!-- Sidebar -->
             <aside class="sidebar" :class="{ 'minimized': sidebarMinimized }">
                 <div class="sidebar-header">
