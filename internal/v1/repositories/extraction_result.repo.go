@@ -17,6 +17,10 @@ type IExtractionResultRepo interface {
 	common.IBaseCrudRepo[entities.ExtractionResult, models.ExtractionResultInput, models.ExtractionResultPage]
 	GetByWorkflowID(c *gin.Context, workflowID any) (paginate.Page, []models.ExtractionResultPage)
 	GetStatusCount(c context.Context, status string, userID any) (float32, error)
+	GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error)
+	GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error)
+	GetWorkflowBreakdown(c context.Context, userID any) ([]models.WorkflowBreakdown, error)
+	GetLastNByUserID(c context.Context, userID any, n int) ([]models.ExtractionActivity, error)
 }
 
 type ExtractionResultRepo struct {
@@ -124,4 +128,113 @@ func (r *ExtractionResultRepo) GetStatusCount(c context.Context, status string, 
 
 	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID, status).Scan(c, &count)
 	return count, err
+}
+
+func (r *ExtractionResultRepo) GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error) {
+	query := `
+		WITH user_results AS (
+			SELECT er.created_at, er.status
+			FROM extraction_results er
+			JOIN workflows w ON er.workflow_id = w.id
+			WHERE er.deleted_at IS NULL
+			AND w.user_id = ?
+		)
+		SELECT
+			d.day AS bucket,
+			COUNT(ur.created_at) FILTER (WHERE ur.status = 'DONE')        AS done,
+			COUNT(ur.created_at) FILTER (WHERE ur.status = 'FAILED')      AS failed,
+			COUNT(ur.created_at) FILTER (WHERE ur.status = 'IN_PROGRESS') AS in_progress
+		FROM generate_series(
+			date_trunc('day', now() - interval '13 days'),
+			date_trunc('day', now()),
+			interval '1 day'
+		) AS d(day)
+		LEFT JOIN user_results ur
+			ON date_trunc('day', ur.created_at) = d.day
+		GROUP BY d.day
+		ORDER BY d.day
+	`
+
+	var throughputPoints []models.ThroughputPoint
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &throughputPoints)
+	return throughputPoints, err
+}
+
+func (r *ExtractionResultRepo) GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error) {
+	query := `
+		WITH latencies AS (
+			SELECT EXTRACT(EPOCH FROM (er.finished_at - er.created_at)) AS seconds
+			FROM extraction_results er
+			JOIN workflows w ON er.workflow_id = w.id
+			WHERE er.deleted_at IS NULL
+			AND w.user_id = ?
+			AND er.finished_at IS NOT NULL
+			AND er.created_at >= date_trunc('day', now() - interval '29 days')
+		)
+		SELECT
+			COUNT(*)                                                       AS completed,
+			AVG(seconds)                                                   AS avg_seconds,
+			percentile_cont(0.5)  WITHIN GROUP (ORDER BY seconds)          AS p50_seconds,
+			percentile_cont(0.95) WITHIN GROUP (ORDER BY seconds)          AS p95_seconds
+		FROM latencies
+	`
+
+	var latencyStats models.LatencyStats
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &latencyStats)
+	return latencyStats, err
+}
+
+func (r *ExtractionResultRepo) GetWorkflowBreakdown(c context.Context, userID any) ([]models.WorkflowBreakdown, error) {
+	query := `
+		SELECT
+			w.id                                                                       AS workflow_id,
+			w.title                                                                    AS workflow_title,
+			w.type                                                                     AS workflow_type,
+			COUNT(er.id)                                                               AS total_runs,
+			COUNT(er.id) FILTER (WHERE er.status = 'DONE')                            AS done,
+			COUNT(er.id) FILTER (WHERE er.status = 'FAILED')                          AS failed,
+			COUNT(er.id) FILTER (WHERE er.status = 'IN_PROGRESS')                     AS in_progress,
+			MAX(er.created_at)                                                         AS last_run_at,
+			AVG(EXTRACT(EPOCH FROM (er.finished_at - er.created_at)))
+				FILTER (WHERE er.finished_at IS NOT NULL)                             AS avg_latency_seconds,
+			percentile_cont(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (er.finished_at - er.created_at)))
+				FILTER (WHERE er.finished_at IS NOT NULL)                             AS p95_latency_seconds
+		FROM workflows w
+		LEFT JOIN extraction_results er
+			ON er.workflow_id = w.id
+		AND er.deleted_at IS NULL
+		WHERE w.user_id = ?
+		AND w.deleted_at IS NULL
+		GROUP BY w.id, w.title, w.type
+		ORDER BY total_runs DESC, last_run_at DESC NULLS LAST;
+	`
+
+	var breakdowns []models.WorkflowBreakdown
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &breakdowns)
+	return breakdowns, err
+}
+
+func (r *ExtractionResultRepo) GetLastNByUserID(c context.Context, userID any, n int) ([]models.ExtractionActivity, error) {
+	query := `
+		select 
+			er.id as extraction_id,
+			er.workflow_id as workflow_id,
+			w.title as workflow,
+			er.attachment as attachment,
+			er.status as status,
+			er.created_at as created_at,
+			er.finished_at as finished_at,
+			'/workflows/' || er.workflow_id || '/results/' || er.id as route,
+			w.user_id as user_id
+		from extraction_results er
+		join workflows w on er.workflow_id = w.id
+		where er.deleted_at isnull
+		and w.user_id = ?
+		order by er.created_at desc
+		limit ?
+	`
+
+	var activities []models.ExtractionActivity
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID, n).Scan(c, &activities)
+	return activities, err
 }

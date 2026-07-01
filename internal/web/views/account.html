@@ -23,7 +23,7 @@
     copiedCreated: false,
     copiedRegenerated: false,
     scopeSearch: ''
-}" style="width: 100%; padding-bottom: 40px; min-width: 0; max-width: 100%;">
+}" x-init="$dispatch('set-active-menu', 'account')" style="width: 100%; padding-bottom: 40px; min-width: 0; max-width: 100%;">
 
     <header class="page-header" style="margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
@@ -114,94 +114,128 @@
     <!-- Responsive Settings Grid -->
     <div class="account-settings-grid">
         
-        <!-- Left Column: Change Password Card -->
-        <div class="form-card" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; width: 100%; min-width: 0; box-sizing: border-box;">
-            <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 16px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Change Password</h2>
-            
-            <div id="password-alert" style="width: 100%;"></div>
-            
-            <form hx-post="/account/password" hx-target="#password-alert" hx-swap="outerHTML" x-data="{
-                currentPassword: '',
-                password: '',
-                confirmPassword: '',
-                get hasUpper() { return /[A-Z]/.test(this.password); },
-                get hasDigit() { return /[0-9]/.test(this.password); },
-                get hasSpecial() { return /[^A-Za-z0-9]/.test(this.password); },
-                get isMinLength() { return this.password.length >= 8; },
-                get isValid() { return this.hasUpper && this.hasDigit && this.hasSpecial && this.isMinLength && this.password === this.confirmPassword; }
-            }" @htmx:after-request="if (event.detail.successful) { currentPassword = ''; password = ''; confirmPassword = ''; }">
+        <!-- Left Column: Usage Card and Change Password Card -->
+        <div style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+            <!-- Usage Card -->
+            <div class="form-card" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; width: 100%; min-width: 0; box-sizing: border-box;">
+                <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 16px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Daily Usage Quota</h2>
                 
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="currentPassword" class="form-label" style="font-size: 11px; font-weight: 600;">Current Password</label>
-                    <input type="password" id="currentPassword" name="currentPassword" class="form-input" placeholder="••••••••" required x-model="currentPassword">
-                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 13px;">
+                        <span style="color: var(--text-secondary);">Extraction runs today:</span>
+                        <strong style="color: var(--text-primary);">{{ .UsageCount }} / {{ .DailyLimit }}</strong>
+                    </div>
 
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label for="newPassword" class="form-label" style="font-size: 11px; font-weight: 600;">New Password</label>
-                    <input type="password" 
-                           id="newPassword" 
-                           name="password" 
-                           class="form-input" 
-                           placeholder="••••••••" 
-                           required 
-                           x-model="password">
+                    <!-- Usage bar background -->
+                    <div style="width: 100%; height: 8px; background-color: var(--bg-dark); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color); position: relative;">
+                        <!-- Usage bar progress fill -->
+                        <div style="height: 100%; border-radius: 4px; width: {{ .UsagePercent }}%; transition: width 0.3s ease;
+                             {{ if ge .UsagePercent 100 }}
+                                 background: linear-gradient(90deg, #ef4444, #b91c1c);
+                             {{ else if ge .UsagePercent 80 }}
+                                 background: linear-gradient(90deg, #f59e0b, #d97706);
+                             {{ else }}
+                                 background: linear-gradient(90deg, #10b981, #059669);
+                             {{ end }}
+                             ">
+                        </div>
+                    </div>
+
+                    <p style="font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.4;">
+                        Your account is limited to {{ .DailyLimit }} document extractions per day. Quota resets daily at UTC 00:00.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="form-card" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; width: 100%; min-width: 0; box-sizing: border-box;">
+                <h2 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); margin: 0 0 16px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Change Password</h2>
+                
+                <div id="password-alert" style="width: 100%;"></div>
+                
+                <form hx-post="/account/password" hx-target="#password-alert" hx-swap="outerHTML" x-data="{
+                    currentPassword: '',
+                    password: '',
+                    confirmPassword: '',
+                    get hasUpper() { return /[A-Z]/.test(this.password); },
+                    get hasDigit() { return /[0-9]/.test(this.password); },
+                    get hasSpecial() { return /[^A-Za-z0-9]/.test(this.password); },
+                    get isMinLength() { return this.password.length >= 8; },
+                    get isValid() { return this.hasUpper && this.hasDigit && this.hasSpecial && this.isMinLength && this.password === this.confirmPassword; }
+                }" @htmx:after-request="if (event.detail.successful) { currentPassword = ''; password = ''; confirmPassword = ''; }">
                     
-                    <!-- Password requirements checklist -->
-                    <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
-                        <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
-                             :style="password === '' ? 'color: var(--text-muted);' : (isMinLength ? 'color: #10b981;' : 'color: #ef4444;')">
-                            <span x-show="password !== '' && isMinLength">✓</span>
-                            <span x-show="password !== '' && !isMinLength">✗</span>
-                            <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
-                            <span>At least 8 characters</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
-                             :style="password === '' ? 'color: var(--text-muted);' : (hasUpper ? 'color: #10b981;' : 'color: #ef4444;')">
-                            <span x-show="password !== '' && hasUpper">✓</span>
-                            <span x-show="password !== '' && !hasUpper">✗</span>
-                            <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
-                            <span>At least one uppercase letter (A-Z)</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
-                             :style="password === '' ? 'color: var(--text-muted);' : (hasDigit ? 'color: #10b981;' : 'color: #ef4444;')">
-                            <span x-show="password !== '' && hasDigit">✓</span>
-                            <span x-show="password !== '' && !hasDigit">✗</span>
-                            <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
-                            <span>At least one numeric character (0-9)</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
-                             :style="password === '' ? 'color: var(--text-muted);' : (hasSpecial ? 'color: #10b981;' : 'color: #ef4444;')">
-                            <span x-show="password !== '' && hasSpecial">✓</span>
-                            <span x-show="password !== '' && !hasSpecial">✗</span>
-                            <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
-                            <span>At least one special character</span>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="currentPassword" class="form-label" style="font-size: 11px; font-weight: 600;">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" class="form-input" placeholder="••••••••" required x-model="currentPassword">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label for="newPassword" class="form-label" style="font-size: 11px; font-weight: 600;">New Password</label>
+                        <input type="password" 
+                               id="newPassword" 
+                               name="password" 
+                               class="form-input" 
+                               placeholder="••••••••" 
+                               required 
+                               x-model="password">
+                        
+                        <!-- Password requirements checklist -->
+                        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
+                            <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
+                                 :style="password === '' ? 'color: var(--text-muted);' : (isMinLength ? 'color: #10b981;' : 'color: #ef4444;')">
+                                <span x-show="password !== '' && isMinLength">✓</span>
+                                <span x-show="password !== '' && !isMinLength">✗</span>
+                                <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
+                                <span>At least 8 characters</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
+                                 :style="password === '' ? 'color: var(--text-muted);' : (hasUpper ? 'color: #10b981;' : 'color: #ef4444;')">
+                                <span x-show="password !== '' && hasUpper">✓</span>
+                                <span x-show="password !== '' && !hasUpper">✗</span>
+                                <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
+                                <span>At least one uppercase letter (A-Z)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
+                                 :style="password === '' ? 'color: var(--text-muted);' : (hasDigit ? 'color: #10b981;' : 'color: #ef4444;')">
+                                <span x-show="password !== '' && hasDigit">✓</span>
+                                <span x-show="password !== '' && !hasDigit">✗</span>
+                                <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
+                                <span>At least one numeric character (0-9)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
+                                 :style="password === '' ? 'color: var(--text-muted);' : (hasSpecial ? 'color: #10b981;' : 'color: #ef4444;')">
+                                <span x-show="password !== '' && hasSpecial">✓</span>
+                                <span x-show="password !== '' && !hasSpecial">✗</span>
+                                <span x-show="password === ''" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--text-muted); margin: 0 3px;"></span>
+                                <span>At least one special character</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label for="confirmNewPassword" class="form-label" style="font-size: 11px; font-weight: 600;">Confirm New Password</label>
-                    <input type="password" 
-                           id="confirmNewPassword" 
-                           name="confirmPassword" 
-                           class="form-input" 
-                           placeholder="••••••••" 
-                           required 
-                           x-model="confirmPassword">
-                    <div x-show="confirmPassword !== '' && password !== confirmPassword" 
-                         style="margin-top: 6px; font-size: 11px; color: #ef4444; display: flex; align-items: center; gap: 6px;">
-                        <span>✗</span> Passwords do not match
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="confirmNewPassword" class="form-label" style="font-size: 11px; font-weight: 600;">Confirm New Password</label>
+                        <input type="password" 
+                               id="confirmNewPassword" 
+                               name="confirmPassword" 
+                               class="form-input" 
+                               placeholder="••••••••" 
+                               required 
+                               x-model="confirmPassword">
+                        <div x-show="confirmPassword !== '' && password !== confirmPassword" 
+                             style="margin-top: 6px; font-size: 11px; color: #ef4444; display: flex; align-items: center; gap: 6px;">
+                             <span>✗</span> Passwords do not match
+                        </div>
                     </div>
-                </div>
 
-                <button type="submit" 
-                        class="btn btn-primary"
-                        :disabled="password === '' || !isValid || currentPassword === ''"
-                        style="width: 100%;">
-                    <span>Update Password</span>
-                    <span class="htmx-indicator spinner"></span>
-                </button>
-            </form>
+                    <button type="submit" 
+                            class="btn btn-primary"
+                            :disabled="password === '' || !isValid || currentPassword === ''"
+                            style="width: 100%;">
+                        <span>Update Password</span>
+                        <span class="htmx-indicator spinner"></span>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Right Column: API Keys list -->

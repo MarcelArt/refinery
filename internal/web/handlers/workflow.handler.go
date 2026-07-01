@@ -28,26 +28,6 @@ func NewWorkflowWebHandler(
 	}
 }
 
-// ShowDashboard renders the dashboard overview page
-func (h *WorkflowWebHandler) ShowDashboard(c *gin.Context) {
-	userId, exists := c.Get("userId")
-	if !exists {
-		c.Redirect(http.StatusSeeOther, "/login")
-		return
-	}
-
-	user, err := h.userService.GetByID(c, userId)
-	if err != nil {
-		c.Redirect(http.StatusSeeOther, "/login")
-		return
-	}
-
-	renderTemplate(c, http.StatusOK, "dashboard.html", gin.H{
-		"Title":      "Dashboard",
-		"User":       user,
-		"ActiveMenu": "dashboard",
-	})
-}
 
 // ShowWorkflows renders the main workflows dashboard page
 func (h *WorkflowWebHandler) ShowWorkflows(c *gin.Context) {

@@ -13,6 +13,7 @@ func SetupWebRoutes(
 	erH *handlers.ExtractionResultWebHandler,
 	akH *handlers.ApiKeyWebHandler,
 	whH *handlers.WebhookWebHandler,
+	dashH *handlers.DashboardWebHandler,
 ) {
 	// Serve static assets
 	r.Static("/public", "internal/web/public")
@@ -23,4 +24,5 @@ func SetupWebRoutes(
 	setupExtractionResultRoutes(r, authM, erH)
 	setupApiKeyRoutes(r, authM, akH)
 	setupWebhookRoutes(r, authM, whH)
+	setupDashboardRoutes(r, authM, dashH)
 }
