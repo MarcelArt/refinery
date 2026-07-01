@@ -14,4 +14,5 @@ func setupDashboardRoutes(v1 *gin.RouterGroup, authM *middlewares.AuthMiddleware
 	g.GET("/daily-throughput", h.GetDailyThroughput)
 	g.GET("/latency-stats", h.GetLatencyStats)
 	g.GET("/workflow-breakdown", h.GetWorkflowBreakdown)
+	g.GET("/last-extractions", h.GetLastNExtractions)
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/MarcelArt/refinery/internal/common"
 	"github.com/MarcelArt/refinery/internal/v1/services"
@@ -113,4 +114,38 @@ func (h *DashboardHandler) GetWorkflowBreakdown(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, common.ResultOk(breakdowns, "Workflow breakdown retrieved"))
+}
+
+// GetLastNExtractions godoc
+// @Summary      Get last N extractions
+// @Description  Get last N extractions activity for the authenticated user
+// @Tags         dashboard
+// @Accept       json
+// @Produce      json
+// @Param        n    query     int  true  "Number of extractions to retrieve"
+// @Success      200  {object}  common.Result[[]models.ExtractionActivity]
+// @Failure      400  {object}  common.Result[string]
+// @Failure      401  {object}  common.Result[string]
+// @Failure      403  {object}  common.Result[string]
+// @Failure      500  {object}  common.Result[string]
+// @Security     BearerAuth
+// @Security     ApiKey
+// @Router       /v1/dashboard/last-extractions [get]
+func (h *DashboardHandler) GetLastNExtractions(c *gin.Context) {
+	userID := c.MustGet("userId")
+	n := c.Query("n")
+	limit, err := strconv.Atoi(n)
+	if err != nil {
+		_, res := common.ResultErr(err, "invalid limit parameter")
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	extractions, err := h.service.GetLastNExtractions(c.Request.Context(), userID, limit)
+	if err != nil {
+		c.JSON(common.ResultErr(err, "failed getting last N extractions"))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.ResultOk(extractions, "Last N extractions retrieved"))
 }

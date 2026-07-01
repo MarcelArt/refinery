@@ -20,6 +20,7 @@ type IExtractionResultRepo interface {
 	GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error)
 	GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error)
 	GetWorkflowBreakdown(c context.Context, userID any) ([]models.WorkflowBreakdown, error)
+	GetLastNByUserID(c context.Context, userID any, n int) ([]models.ExtractionActivity, error)
 }
 
 type ExtractionResultRepo struct {
@@ -211,4 +212,29 @@ func (r *ExtractionResultRepo) GetWorkflowBreakdown(c context.Context, userID an
 	var breakdowns []models.WorkflowBreakdown
 	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &breakdowns)
 	return breakdowns, err
+}
+
+func (r *ExtractionResultRepo) GetLastNByUserID(c context.Context, userID any, n int) ([]models.ExtractionActivity, error) {
+	query := `
+		select 
+			er.id as extraction_id,
+			er.workflow_id as workflow_id,
+			w.title as workflow,
+			er.attachment as attachment,
+			er.status as status,
+			er.created_at as created_at,
+			er.finished_at as finished_at,
+			'/workflows/' || er.workflow_id || '/results/' || er.id as route,
+			w.user_id as user_id
+		from extraction_results er
+		join workflows w on er.workflow_id = w.id
+		where er.deleted_at isnull
+		and w.user_id = ?
+		order by er.created_at desc
+		limit ?
+	`
+
+	var activities []models.ExtractionActivity
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID, n).Scan(c, &activities)
+	return activities, err
 }

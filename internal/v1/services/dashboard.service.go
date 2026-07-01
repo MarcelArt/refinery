@@ -63,3 +63,7 @@ func (s *DashboardService) GetWorkflowBreakdown(c context.Context, userID any) (
 
 	return rows, nil
 }
+
+func (s *DashboardService) GetLastNExtractions(c context.Context, userID any, n int) ([]models.ExtractionActivity, error) {
+	return s.erRepo.GetLastNByUserID(c, userID, n)
+}

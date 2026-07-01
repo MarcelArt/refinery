@@ -35,3 +35,15 @@ type WorkflowBreakdown struct {
 	P95LatencySeconds *float64   `json:"p95LatencySeconds"`
 	SuccessRate       *float64   `json:"successRate"` // computed in Go
 }
+
+type ExtractionActivity struct {
+	ExtractionID uint      `json:"extractionId"`
+	WorkflowID   uint      `json:"workflowId"`
+	Workflow     string    `json:"workflow"`
+	Attachment   string    `json:"attachment"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"createdAt"`
+	FinishedAt   time.Time `json:"finishedAt"`
+	Route        string    `json:"route"`
+	UserID       uint      `json:"userId"`
+}
