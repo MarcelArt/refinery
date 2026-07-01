@@ -90,3 +90,27 @@ func (h *DashboardHandler) GetLatencyStats(c *gin.Context) {
 
 	c.JSON(http.StatusOK, common.ResultOk(latencyStats, "Latency stats retrieved"))
 }
+
+// GetWorkflowBreakdown godoc
+// @Summary      Get workflow breakdown
+// @Description  Get a breakdown of runs, statuses, latencies, and success rates grouped by workflow for the authenticated user
+// @Tags         dashboard
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  common.Result[[]models.WorkflowBreakdown]
+// @Failure      401  {object}  common.Result[string]
+// @Failure      403  {object}  common.Result[string]
+// @Failure      500  {object}  common.Result[string]
+// @Security     BearerAuth
+// @Security     ApiKey
+// @Router       /v1/dashboard/workflow-breakdown [get]
+func (h *DashboardHandler) GetWorkflowBreakdown(c *gin.Context) {
+	userID := c.MustGet("userId")
+	breakdowns, err := h.service.GetWorkflowBreakdown(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(common.ResultErr(err, "failed getting workflow breakdown"))
+		return
+	}
+
+	c.JSON(http.StatusOK, common.ResultOk(breakdowns, "Workflow breakdown retrieved"))
+}

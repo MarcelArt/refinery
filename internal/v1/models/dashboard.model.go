@@ -21,3 +21,17 @@ type LatencyStats struct {
 	P50Seconds *float64 `json:"p50Seconds"`
 	P95Seconds *float64 `json:"p95Seconds"`
 }
+
+type WorkflowBreakdown struct {
+	WorkflowID        uint       `json:"workflowId"`
+	WorkflowTitle     string     `json:"workflowTitle"`
+	WorkflowType      string     `json:"workflowType"`
+	TotalRuns         int64      `json:"totalRuns"`
+	Done              int64      `json:"done"`
+	Failed            int64      `json:"failed"`
+	InProgress        int64      `json:"inProgress"`
+	LastRunAt         *time.Time `json:"lastRunAt"`
+	AvgLatencySeconds *float64   `json:"avgLatencySeconds"`
+	P95LatencySeconds *float64   `json:"p95LatencySeconds"`
+	SuccessRate       *float64   `json:"successRate"` // computed in Go
+}

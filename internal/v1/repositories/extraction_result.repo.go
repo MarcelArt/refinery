@@ -19,6 +19,7 @@ type IExtractionResultRepo interface {
 	GetStatusCount(c context.Context, status string, userID any) (float32, error)
 	GetDailyThroughput(c context.Context, userID any) ([]models.ThroughputPoint, error)
 	GetLatencyStats(c context.Context, userID any) (models.LatencyStats, error)
+	GetWorkflowBreakdown(c context.Context, userID any) ([]models.WorkflowBreakdown, error)
 }
 
 type ExtractionResultRepo struct {
@@ -180,4 +181,34 @@ func (r *ExtractionResultRepo) GetLatencyStats(c context.Context, userID any) (m
 	var latencyStats models.LatencyStats
 	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &latencyStats)
 	return latencyStats, err
+}
+
+func (r *ExtractionResultRepo) GetWorkflowBreakdown(c context.Context, userID any) ([]models.WorkflowBreakdown, error) {
+	query := `
+		SELECT
+			w.id                                                                       AS workflow_id,
+			w.title                                                                    AS workflow_title,
+			w.type                                                                     AS workflow_type,
+			COUNT(er.id)                                                               AS total_runs,
+			COUNT(er.id) FILTER (WHERE er.status = 'DONE')                            AS done,
+			COUNT(er.id) FILTER (WHERE er.status = 'FAILED')                          AS failed,
+			COUNT(er.id) FILTER (WHERE er.status = 'IN_PROGRESS')                     AS in_progress,
+			MAX(er.created_at)                                                         AS last_run_at,
+			AVG(EXTRACT(EPOCH FROM (er.finished_at - er.created_at)))
+				FILTER (WHERE er.finished_at IS NOT NULL)                             AS avg_latency_seconds,
+			percentile_cont(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (er.finished_at - er.created_at)))
+				FILTER (WHERE er.finished_at IS NOT NULL)                             AS p95_latency_seconds
+		FROM workflows w
+		LEFT JOIN extraction_results er
+			ON er.workflow_id = w.id
+		AND er.deleted_at IS NULL
+		WHERE w.user_id = ?
+		AND w.deleted_at IS NULL
+		GROUP BY w.id, w.title, w.type
+		ORDER BY total_runs DESC, last_run_at DESC NULLS LAST;
+	`
+
+	var breakdowns []models.WorkflowBreakdown
+	err := gorm.G[entities.ExtractionResult](r.db).Raw(query, userID).Scan(c, &breakdowns)
+	return breakdowns, err
 }
